@@ -12,11 +12,9 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
  * POST /transcripts takes a bare array (not `{transcript}`) and only stores
  * the transcript; a separate POST /transcripts/{id}/analyze runs analysis.
  *
- * poiSpeaker (person of interest, e.g. the child being protected) is not
- * yet part of the finalized contract — adit/gabriel still need to confirm
- * the field name and wire the AI service to consume it. Sent as an optional
- * body on /analyze (which today takes no body at all) so this is purely
- * additive and can't break the existing handler. See HANDOFF.md.
+ * poiSpeaker (person of interest, e.g. the child being protected) is sent
+ * as `person_of_interest` on /analyze, matching adit/gabriel's finalized
+ * contract (docs/api-contract.md section 2/6, confirmed 2026-07-17).
  */
 export async function analyzeTranscript(
   transcript: TranscriptMessage[],
@@ -56,7 +54,7 @@ async function runAnalysis(
     ...(poiSpeaker
       ? {
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ poi_speaker: poiSpeaker }),
+          body: JSON.stringify({ person_of_interest: poiSpeaker }),
         }
       : {}),
   });

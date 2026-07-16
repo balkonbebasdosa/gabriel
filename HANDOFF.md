@@ -132,3 +132,24 @@ name with adit/gabriel before assuming this exact name is final. If validating T
 support, get a real "Export chat history" JSON file from Telegram Desktop and run it through
 `npm run extract-transcript -- --platform telegram --in <file> --out transcript.json` to sanity
 check before the demo.
+
+### [branch: feat/frontend-gunta] — 2026-07-17 WIB
+
+**changed:** fixed a field-name mismatch flagged by a teammate — `runAnalysis` in `api.ts` was
+sending `poi_speaker` on `POST /transcripts/{id}/analyze`, but adit's backend (commit `6ecaa03`,
+Jackson `SNAKE_CASE`) and gabriel's ai-service (commit `b41975c`, `schemas.py`) both landed on
+`person_of_interest` as the finalized field name. The wrong key was being silently dropped (no
+error, POI just never applied). Now sends `{ person_of_interest: poiSpeaker }`. `tsc --noEmit`
+and lint both clean.
+
+**interface impact:** none beyond the fix itself — brings this branch in line with the contract
+adit/gabriel already finalized.
+
+**still open:** adit's `/analyze` response now also returns a `conclusion` object
+(`participants[]` with per-speaker `role`/`behavior_summary`, plus `person_of_interest_summary`)
+that this branch doesn't parse or render yet — a new feature, not part of this fix. `types.ts`'s
+`AnalysisResult` doesn't have `conclusion` on it.
+
+**next agent should:** if adding `conclusion` rendering, check `docs/api-contract.md` section 2
+on adit's branch (or after merge) for the exact shape and the `target_victim` /
+`active_participant` / `bystander` / `mediator` / `unclear` role vocabulary.
