@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, staging]
+
+jobs:
+  backend:
+    name: backend (build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check backend exists
+        id: check
+        run: echo "exists=$( [ -f backend/pom.xml ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-java@v4
+        if: steps.check.outputs.exists == 'true'
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Build with Maven
+        if: steps.check.outputs.exists == 'true'
+        working-directory: backend
+        run: ./mvnw -B -ntp verify
+
+  ai-service:
+    name: ai-service (lint + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check ai-service exists
+        id: check
+        run: echo "exists=$( [ -f ai-service/requirements.txt ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-python@v5
+        if: steps.check.outputs.exists == 'true'
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        if: steps.check.outputs.exists == 'true'
+        working-directory: ai-service
+        run: |
+          pip install -r requirements.txt
+          pip install ruff
+      - name: Lint
+        if: steps.check.outputs.exists == 'true'
+        working-directory: ai-service
+        run: ruff check .
+      - name: Import check
+        if: steps.check.outputs.exists == 'true'
+        working-directory: ai-service
+        run: python -c "import main"
+
+  frontend:
+    name: frontend (lint + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check frontend exists
+        id: check
+        run: echo "exists=$( [ -f frontend/package.json ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        if: steps.check.outputs.exists == 'true'
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        if: steps.check.outputs.exists == 'true'
+        working-directory: frontend
+        run: npm ci
+      - name: Lint
+        if: steps.check.outputs.exists == 'true'
+        working-directory: frontend
+        run: npm run lint
+      - name: Build
+        if: steps.check.outputs.exists == 'true'
+        working-directory: frontend
+        run: npm run build
