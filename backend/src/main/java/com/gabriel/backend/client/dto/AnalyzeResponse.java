@@ -11,7 +11,8 @@ public record AnalyzeResponse(
         List<AnalyzeSegment> segments,
         double progressionScore,
         List<String> stagesReached,
-        String summary
+        String summary,
+        AnalyzeConclusion conclusion
 ) {
     public record AnalyzeSegment(
             int messageIndex,

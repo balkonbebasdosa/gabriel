@@ -1,12 +1,16 @@
 package com.gabriel.backend.client;
 
+import com.gabriel.backend.client.dto.AnalyzeConclusion;
+import com.gabriel.backend.client.dto.AnalyzeParticipant;
 import com.gabriel.backend.client.dto.AnalyzeRequest;
 import com.gabriel.backend.client.dto.AnalyzeResponse;
 import com.gabriel.backend.client.dto.AnalyzeResponse.AnalyzeSegment;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 /**
@@ -33,11 +37,35 @@ public class MockAnalyzeClient implements AnalyzeClient {
                         "mock analysis - stub response for local development, not a real grooming-risk assessment"))
                 .toList();
 
+        AnalyzeConclusion conclusion = toMockConclusion(request);
+
         return new AnalyzeResponse(
                 segments,
                 0.18,
                 List.of("trust_building"),
-                "conversation shows early rapport-building only, no escalation detected (mock response)"
+                "conversation shows early rapport-building only, no escalation detected (mock response)",
+                conclusion
         );
+    }
+
+    private AnalyzeConclusion toMockConclusion(AnalyzeRequest request) {
+        Set<String> speakers = new LinkedHashSet<>();
+        for (AnalyzeRequest.TranscriptMessage message : request.transcript()) {
+            speakers.add(message.speaker());
+        }
+
+        List<AnalyzeParticipant> participants = speakers.stream()
+                .map(speaker -> new AnalyzeParticipant(
+                        speaker,
+                        "unclear",
+                        "mock conclusion - stub response for local development, not a real behavior assessment"))
+                .toList();
+
+        AnalyzeParticipant personOfInterestSummary = participants.stream()
+                .filter(participant -> participant.speaker().equals(request.personOfInterest()))
+                .findFirst()
+                .orElse(null);
+
+        return new AnalyzeConclusion(participants, personOfInterestSummary);
     }
 }

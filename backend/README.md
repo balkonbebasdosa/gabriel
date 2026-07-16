@@ -118,6 +118,8 @@ curl -s -X POST http://localhost:8080/transcripts \
 
 ### 2. Run analysis — `POST /transcripts/{id}/analyze`
 
+Request body is optional — omit it entirely for the plain case:
+
 ```bash
 curl -s -X POST http://localhost:8080/transcripts/$TRANSCRIPT_ID/analyze
 ```
@@ -133,9 +135,26 @@ curl -s -X POST http://localhost:8080/transcripts/$TRANSCRIPT_ID/analyze
   ],
   "progression_score": 0.18,
   "stages_reached": ["trust_building"],
-  "summary": "conversation shows early rapport-building only, no escalation detected (mock response)"
+  "summary": "conversation shows early rapport-building only, no escalation detected (mock response)",
+  "conclusion": {
+    "participants": [
+      { "speaker": "A", "role": "unclear", "behavior_summary": "mock conclusion - stub response for local development, not a real behavior assessment" },
+      { "speaker": "B", "role": "unclear", "behavior_summary": "mock conclusion - stub response for local development, not a real behavior assessment" }
+    ],
+    "person_of_interest_summary": null
+  }
 }
 ```
+
+Or ask for a focused conclusion on one speaker via `person_of_interest` (must match a `speaker` already in the transcript, or `400`):
+
+```bash
+curl -s -X POST http://localhost:8080/transcripts/$TRANSCRIPT_ID/analyze \
+  -H "Content-Type: application/json" \
+  -d '{ "person_of_interest": "B" }'
+```
+
+`person_of_interest_summary` in the response will then be the matching entry from `conclusion.participants` instead of `null`.
 
 ### 3. Fetch a transcript + its latest analysis — `GET /transcripts/{id}`
 
@@ -163,4 +182,12 @@ Unknown transcript id (`404`):
 
 ```bash
 curl -s http://localhost:8080/transcripts/00000000-0000-0000-0000-000000000000
+```
+
+`person_of_interest` that doesn't match any speaker in the transcript (`400`):
+
+```bash
+curl -s -X POST http://localhost:8080/transcripts/$TRANSCRIPT_ID/analyze \
+  -H "Content-Type: application/json" \
+  -d '{ "person_of_interest": "nobody-in-this-transcript" }'
 ```

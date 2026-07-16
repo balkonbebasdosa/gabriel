@@ -1,6 +1,7 @@
 package com.gabriel.backend.controller;
 
 import com.gabriel.backend.dto.AnalysisResponse;
+import com.gabriel.backend.dto.AnalyzeTranscriptRequest;
 import com.gabriel.backend.dto.MessageRequest;
 import com.gabriel.backend.dto.TranscriptCreatedResponse;
 import com.gabriel.backend.dto.TranscriptDetailResponse;
@@ -39,8 +40,11 @@ public class TranscriptController {
     }
 
     @PostMapping("/{id}/analyze")
-    public ResponseEntity<AnalysisResponse> analyzeTranscript(@PathVariable UUID id) {
-        return ResponseEntity.ok(analysisService.analyzeTranscript(id));
+    public ResponseEntity<AnalysisResponse> analyzeTranscript(
+            @PathVariable UUID id,
+            @RequestBody(required = false) AnalyzeTranscriptRequest request) {
+        String personOfInterest = request == null ? null : request.personOfInterest();
+        return ResponseEntity.ok(analysisService.analyzeTranscript(id, personOfInterest));
     }
 
     @GetMapping("/{id}")

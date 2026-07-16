@@ -50,6 +50,17 @@ public class AnalysisResult {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String summary;
 
+    /**
+     * Speaker label from the request that the caller wanted a focused conclusion on
+     * (typically the child/minor). Null if not requested. Used to pick out the matching
+     * entry from participants when rebuilding conclusion.person_of_interest_summary.
+     */
+    @Column(name = "person_of_interest")
+    private String personOfInterest;
+
+    @OneToMany(mappedBy = "analysisResult", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Participant> participants = new ArrayList<>();
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -67,6 +78,11 @@ public class AnalysisResult {
     public void addSegment(Segment segment) {
         segment.setAnalysisResult(this);
         segments.add(segment);
+    }
+
+    public void addParticipant(Participant participant) {
+        participant.setAnalysisResult(this);
+        participants.add(participant);
     }
 
     public UUID getId() {
@@ -107,6 +123,22 @@ public class AnalysisResult {
 
     public void setSummary(String summary) {
         this.summary = summary;
+    }
+
+    public String getPersonOfInterest() {
+        return personOfInterest;
+    }
+
+    public void setPersonOfInterest(String personOfInterest) {
+        this.personOfInterest = personOfInterest;
+    }
+
+    public List<Participant> getParticipants() {
+        return participants;
+    }
+
+    public void setParticipants(List<Participant> participants) {
+        this.participants = participants;
     }
 
     public Instant getCreatedAt() {

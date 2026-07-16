@@ -17,7 +17,8 @@ public record AnalysisResponse(
         List<SegmentResponse> segments,
         double progressionScore,
         List<String> stagesReached,
-        String summary
+        String summary,
+        ConclusionResponse conclusion
 ) {
     public static AnalysisResponse from(AnalysisResult result) {
         return new AnalysisResponse(
@@ -27,7 +28,8 @@ public record AnalysisResponse(
                 result.getSegments().stream().map(SegmentResponse::from).toList(),
                 result.getProgressionScore(),
                 List.copyOf(result.getStagesReached()),
-                result.getSummary()
+                result.getSummary(),
+                ConclusionResponse.from(result.getParticipants(), result.getPersonOfInterest())
         );
     }
 }
