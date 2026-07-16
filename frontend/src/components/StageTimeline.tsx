@@ -11,6 +11,8 @@ interface StageTimelineProps {
  */
 export function StageTimeline({ result }: StageTimelineProps) {
   const reached = new Set(result.stages_reached);
+  const isHighRisk =
+    reached.has("isolation_secrecy") || reached.has("desensitization");
   const segmentsByStage = new Map<Stage, typeof result.segments>();
   for (const segment of result.segments) {
     const existing = segmentsByStage.get(segment.stage) ?? [];
@@ -87,14 +89,30 @@ export function StageTimeline({ result }: StageTimelineProps) {
         })}
       </ol>
 
-      <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
+      <div
+        className={`rounded-md border p-4 text-sm ${
+          isHighRisk
+            ? "border-red-500/40 bg-red-500/10"
+            : "border-amber-500/30 bg-amber-500/10"
+        }`}
+      >
         <p className="font-medium">This is not an automated accusation.</p>
-        <p className="mt-1 text-black/70 dark:text-white/70">
-          If this timeline raises concern, escalate to a real reporting channel:{" "}
-          <span className="font-medium">KPAI</span> or{" "}
-          <span className="font-medium">Kominfo Aduan Konten</span> — do not rely on this
-          tool alone.
-        </p>
+        {isHighRisk ? (
+          <p className="mt-1 text-black/70 dark:text-white/70">
+            This timeline shows escalation into the isolation/secrecy or desensitization
+            stages — human review is strongly recommended. Consider a real reporting
+            channel: <span className="font-medium">KPAI</span> or{" "}
+            <span className="font-medium">Kominfo Aduan Konten</span>. This tool does not
+            determine intent — a person must review the conversation.
+          </p>
+        ) : (
+          <p className="mt-1 text-black/70 dark:text-white/70">
+            If this timeline raises concern, escalate to a real reporting channel:{" "}
+            <span className="font-medium">KPAI</span> or{" "}
+            <span className="font-medium">Kominfo Aduan Konten</span> — do not rely on this
+            tool alone.
+          </p>
+        )}
       </div>
     </div>
   );

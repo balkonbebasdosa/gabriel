@@ -1,14 +1,21 @@
 import { TranscriptMessage } from "./types";
 
-export type Platform = "generic" | "whatsapp" | "discord" | "line";
+export type Platform = "generic" | "whatsapp" | "discord" | "line" | "telegram";
 
-export const PLATFORMS: Platform[] = ["generic", "whatsapp", "discord", "line"];
+export const PLATFORMS: Platform[] = [
+  "generic",
+  "whatsapp",
+  "discord",
+  "line",
+  "telegram",
+];
 
 export const PLATFORM_LABELS: Record<Platform, string> = {
   generic: "Generic (\"speaker: message\")",
   whatsapp: "WhatsApp",
   discord: "Discord",
   line: "LINE",
+  telegram: "Telegram",
 };
 
 export const PLATFORM_PLACEHOLDERS: Record<Platform, string> = {
@@ -25,6 +32,21 @@ boring lol`,
   line: `2026.07.16
 14:02\tMom\they, how was school
 14:03\tChild\tboring lol`,
+  telegram: `Mom: hey, how was school
+Child: boring lol
+Mom: anything fun happen
+
+(best-effort — for a real Telegram chat, upload the "Export chat history" JSON file below instead)`,
+};
+
+// File-upload accept attribute per platform: plain-text export formats vs
+// DiscordChatExporter / Telegram Desktop's JSON export formats.
+export const PLATFORM_FILE_ACCEPT: Record<Platform, string> = {
+  generic: ".txt",
+  whatsapp: ".txt",
+  line: ".txt",
+  discord: ".json",
+  telegram: ".json",
 };
 
 /**
@@ -44,9 +66,37 @@ export function parseTranscriptText(
       return parseDiscord(raw);
     case "line":
       return parseLine(raw);
+    case "telegram":
+      // No reliable plain-text copy-paste structure from Telegram Desktop —
+      // fall back to the generic "speaker: message" heuristic. The real path
+      // for Telegram is the JSON export via parseTranscriptFile.
+      return parseGeneric(raw);
     default:
       return parseGeneric(raw);
   }
+}
+
+/**
+ * Parses an uploaded export file. WhatsApp/LINE/Generic are plain text and
+ * reuse the same line-based parsers as the paste path. Discord/Telegram
+ * exports are JSON (DiscordChatExporter --format Json, and Telegram
+ * Desktop's "Export chat history" JSON output respectively).
+ */
+export async function parseTranscriptFile(
+  file: File,
+  platform: Platform
+): Promise<TranscriptMessage[]> {
+  const text = await file.text();
+
+  if (platform === "discord") {
+    return parseDiscordExport(JSON.parse(text));
+  }
+
+  if (platform === "telegram") {
+    return parseTelegramExport(JSON.parse(text));
+  }
+
+  return parseTranscriptText(text, platform);
 }
 
 function nonBlankLines(raw: string): string[] {
@@ -165,6 +215,77 @@ function parseLine(raw: string): TranscriptMessage[] {
   }
 
   return messages;
+}
+
+// Schema confirmed against DiscordChatExporter's real JSON writer
+// (DiscordChatExporter.Core/Exporting/JsonMessageWriter.cs, tag 2.47.3):
+// top-level { messages: [...] }, each message has author.nickname/name,
+// content, timestamp (already ISO 8601), and type ("Default"/"Reply" for
+// real content; other types are system notifications like pins/joins).
+interface DiscordExportMessage {
+  type: string;
+  timestamp: string;
+  content: string;
+  author?: { name?: string; nickname?: string };
+}
+
+const DISCORD_CONTENT_TYPES = new Set(["Default", "Reply"]);
+
+export function parseDiscordExport(data: unknown): TranscriptMessage[] {
+  const messages: DiscordExportMessage[] =
+    (data as { messages?: DiscordExportMessage[] })?.messages ?? [];
+
+  return messages
+    .filter(
+      (m) => DISCORD_CONTENT_TYPES.has(m.type) && m.content?.trim().length > 0
+    )
+    .map((m) => ({
+      speaker: (m.author?.nickname || m.author?.name || "unknown").trim(),
+      message: m.content.trim(),
+      timestamp: toIsoOrNow(m.timestamp),
+    }));
+}
+
+// Telegram Desktop's "Export chat history" JSON output: top-level
+// { messages: [...] }, each message has type ("message" for real content,
+// "service" for join/leave/pin notifications), from (speaker display name),
+// date (timezone-less ISO-ish string), and text (a plain string, or an
+// array mixing plain strings and { type, text } runs for formatted text).
+// Schema is well-established public knowledge, not verified against a live
+// export this session — worth a sanity check against a real file.
+type TelegramTextRun = string | { text?: string };
+
+interface TelegramExportMessage {
+  type: string;
+  date: string;
+  from?: string;
+  text: string | TelegramTextRun[];
+}
+
+function telegramTextToString(text: string | TelegramTextRun[]): string {
+  if (typeof text === "string") return text;
+  return text
+    .map((part) => (typeof part === "string" ? part : part.text ?? ""))
+    .join("");
+}
+
+export function parseTelegramExport(data: unknown): TranscriptMessage[] {
+  const messages: TelegramExportMessage[] =
+    (data as { messages?: TelegramExportMessage[] })?.messages ?? [];
+
+  return messages
+    .filter((m) => m.type === "message" && m.from)
+    .map((m) => ({
+      speaker: m.from!.trim(),
+      message: telegramTextToString(m.text).trim(),
+      timestamp: toIsoOrNow(m.date),
+    }))
+    .filter((m) => m.message.length > 0);
+}
+
+function toIsoOrNow(value: string): string {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
 }
 
 function syntheticTimestamp(index: number): string {

@@ -11,9 +11,16 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
  * Matches the real backend contract (docs/api-contract.md, sections 1-2):
  * POST /transcripts takes a bare array (not `{transcript}`) and only stores
  * the transcript; a separate POST /transcripts/{id}/analyze runs analysis.
+ *
+ * poiSpeaker (person of interest, e.g. the child being protected) is not
+ * yet part of the finalized contract — adit/gabriel still need to confirm
+ * the field name and wire the AI service to consume it. Sent as an optional
+ * body on /analyze (which today takes no body at all) so this is purely
+ * additive and can't break the existing handler. See HANDOFF.md.
  */
 export async function analyzeTranscript(
-  transcript: TranscriptMessage[]
+  transcript: TranscriptMessage[],
+  poiSpeaker?: string
 ): Promise<AnalysisResult> {
   if (!BACKEND_URL) {
     await new Promise((resolve) => setTimeout(resolve, 400));
@@ -21,7 +28,7 @@ export async function analyzeTranscript(
   }
 
   const created = await createTranscript(transcript);
-  return runAnalysis(created.id);
+  return runAnalysis(created.id, poiSpeaker);
 }
 
 async function createTranscript(
@@ -40,9 +47,18 @@ async function createTranscript(
   return res.json();
 }
 
-async function runAnalysis(transcriptId: string): Promise<AnalysisResult> {
+async function runAnalysis(
+  transcriptId: string,
+  poiSpeaker?: string
+): Promise<AnalysisResult> {
   const res = await fetch(`${BACKEND_URL}/transcripts/${transcriptId}/analyze`, {
     method: "POST",
+    ...(poiSpeaker
+      ? {
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ poi_speaker: poiSpeaker }),
+        }
+      : {}),
   });
 
   if (!res.ok) {

@@ -4,20 +4,18 @@ import { useState } from "react";
 import { TranscriptUploadForm } from "@/components/TranscriptUploadForm";
 import { StageTimeline } from "@/components/StageTimeline";
 import { analyzeTranscript } from "@/lib/api";
-import { Platform, parseTranscriptText } from "@/lib/parse-transcript";
-import { AnalysisResult } from "@/lib/types";
+import { AnalysisResult, TranscriptMessage } from "@/lib/types";
 
 export default function Home() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(raw: string, platform: Platform) {
+  async function handleSubmit(transcript: TranscriptMessage[], poiSpeaker?: string) {
     setIsSubmitting(true);
     setError(null);
     try {
-      const transcript = parseTranscriptText(raw, platform);
-      const analysis = await analyzeTranscript(transcript);
+      const analysis = await analyzeTranscript(transcript, poiSpeaker);
       setResult(analysis);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Analysis failed.");
