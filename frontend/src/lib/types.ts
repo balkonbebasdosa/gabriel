@@ -34,8 +34,17 @@ export interface AnalysisSegment {
 }
 
 export interface AnalysisResult {
+  id?: string;
+  transcript_id?: string;
+  created_at?: string;
   segments: AnalysisSegment[];
   progression_score: number;
   stages_reached: Stage[];
   summary: string;
+}
+
+export interface TranscriptCreatedResponse {
+  id: string;
+  created_at: string;
+  message_count: number;
 }

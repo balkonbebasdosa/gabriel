@@ -4,7 +4,7 @@ import { useState } from "react";
 import { TranscriptUploadForm } from "@/components/TranscriptUploadForm";
 import { StageTimeline } from "@/components/StageTimeline";
 import { analyzeTranscript } from "@/lib/api";
-import { parseTranscriptText } from "@/lib/parse-transcript";
+import { Platform, parseTranscriptText } from "@/lib/parse-transcript";
 import { AnalysisResult } from "@/lib/types";
 
 export default function Home() {
@@ -12,11 +12,11 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(raw: string) {
+  async function handleSubmit(raw: string, platform: Platform) {
     setIsSubmitting(true);
     setError(null);
     try {
-      const transcript = parseTranscriptText(raw);
+      const transcript = parseTranscriptText(raw, platform);
       const analysis = await analyzeTranscript(transcript);
       setResult(analysis);
     } catch (err) {
