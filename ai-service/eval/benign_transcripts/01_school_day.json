@@ -1,0 +1,10 @@
+{
+  "transcript": [
+    {"speaker": "A", "message": "hey, how was school", "timestamp": "2026-07-16T14:02:00Z"},
+    {"speaker": "B", "message": "boring lol, we had a pop quiz in math", "timestamp": "2026-07-16T14:02:40Z"},
+    {"speaker": "A", "message": "ugh that's the worst, how'd you do", "timestamp": "2026-07-16T14:03:10Z"},
+    {"speaker": "B", "message": "think i passed, gonna find out tomorrow", "timestamp": "2026-07-16T14:03:30Z"},
+    {"speaker": "A", "message": "good luck! wanna play the new update later", "timestamp": "2026-07-16T14:04:00Z"},
+    {"speaker": "B", "message": "yeah after dinner, my mom wants me off my phone till then", "timestamp": "2026-07-16T14:04:20Z"}
+  ]
+}

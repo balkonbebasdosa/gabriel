@@ -1,0 +1,10 @@
+{
+  "transcript": [
+    {"speaker": "A", "message": "how far into the book are you", "timestamp": "2026-07-16T16:00:00Z"},
+    {"speaker": "B", "message": "chapter 9, it's getting good", "timestamp": "2026-07-16T16:00:20Z"},
+    {"speaker": "A", "message": "no spoilers! i'm only on chapter 6", "timestamp": "2026-07-16T16:00:40Z"},
+    {"speaker": "B", "message": "haha ok, are we still meeting at the library thursday to discuss", "timestamp": "2026-07-16T16:01:10Z"},
+    {"speaker": "A", "message": "yeah the librarian said we can use the back room again", "timestamp": "2026-07-16T16:01:40Z"},
+    {"speaker": "B", "message": "nice, i'll bring snacks this time", "timestamp": "2026-07-16T16:02:00Z"}
+  ]
+}

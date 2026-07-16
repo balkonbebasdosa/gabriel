@@ -1,0 +1,23 @@
+{
+  "_expected": "reaches isolation_secrecy (secrecy request + platform move), conversation ends before desensitization appears",
+  "transcript": [
+    { "speaker": "A", "message": "hey, saw you in the fan server for the show, small world", "timestamp": "2026-07-16T17:00:00Z" },
+    { "speaker": "B", "message": "haha yeah i'm in like every server for it", "timestamp": "2026-07-16T17:00:30Z" },
+    { "speaker": "A", "message": "same honestly, who's your favorite character", "timestamp": "2026-07-16T17:01:00Z" },
+    { "speaker": "B", "message": "probably the main villain ngl, he's just written well", "timestamp": "2026-07-16T17:01:30Z" },
+    { "speaker": "A", "message": "underrated pick, most people just say the hero", "timestamp": "2026-07-16T17:02:00Z" },
+    { "speaker": "B", "message": "right?? nobody gets it", "timestamp": "2026-07-16T17:02:30Z" },
+    { "speaker": "A", "message": "you get it though, i feel like we think alike", "timestamp": "2026-07-16T17:03:00Z" },
+    { "speaker": "B", "message": "haha maybe", "timestamp": "2026-07-16T17:03:30Z" },
+    { "speaker": "A", "message": "this server has a lot of randoms though, i don't love talking here", "timestamp": "2026-07-16T17:05:00Z" },
+    { "speaker": "B", "message": "yeah it can get chaotic", "timestamp": "2026-07-16T17:05:30Z" },
+    { "speaker": "A", "message": "wanna move to dms, just easier to actually talk", "timestamp": "2026-07-16T17:06:00Z" },
+    { "speaker": "B", "message": "sure that's fine", "timestamp": "2026-07-16T17:06:30Z" },
+    { "speaker": "A", "message": "honestly can we keep this chat between us, i don't want the server mods getting weird about it", "timestamp": "2026-07-16T17:08:00Z" },
+    { "speaker": "B", "message": "uh okay, sure i guess", "timestamp": "2026-07-16T17:08:30Z" },
+    { "speaker": "A", "message": "cool, so what other shows are you into", "timestamp": "2026-07-16T17:10:00Z" },
+    { "speaker": "B", "message": "mostly anime, some cartoons too", "timestamp": "2026-07-16T17:10:30Z" },
+    { "speaker": "A", "message": "nice, i should get going actually, ttyl", "timestamp": "2026-07-16T17:12:00Z" },
+    { "speaker": "B", "message": "okay, later", "timestamp": "2026-07-16T17:12:30Z" }
+  ]
+}

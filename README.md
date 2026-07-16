@@ -20,7 +20,7 @@ human review — it never issues an automated accusation.
 ## Tech stack
 
 - **Backend**: Spring Boot 3.x, PostgreSQL, Spring Data JPA
-- **AI service**: Python, FastAPI, Anthropic API
+- **AI service**: Python, FastAPI, Groq API (`openai/gpt-oss-20b`)
 - **Frontend**: Next.js, React, Tailwind CSS, Recharts
 - **Data store**: PostgreSQL
 - **DevOps**: Docker Compose, GitHub Actions (lint + build)
