@@ -4,6 +4,32 @@ interface StageTimelineProps {
   result: AnalysisResult;
 }
 
+const STAGE_ACCENT: Record<
+  Stage,
+  { bar: string; chip: string; icon: string }
+> = {
+  trust_building: {
+    bar: "bg-tertiary",
+    chip: "bg-tertiary text-on-tertiary",
+    icon: "border-tertiary",
+  },
+  risk_assessment: {
+    bar: "bg-secondary-container",
+    chip: "bg-secondary-container text-on-secondary",
+    icon: "border-secondary-container",
+  },
+  isolation_secrecy: {
+    bar: "bg-quaternary-container",
+    chip: "bg-quaternary-container text-on-quaternary",
+    icon: "border-quaternary-container",
+  },
+  desensitization: {
+    bar: "bg-error",
+    chip: "bg-error text-on-error",
+    icon: "border-error",
+  },
+};
+
 /**
  * Renders the four-stage progression as a timeline with per-segment
  * rationale. progression_score is never shown as a bare percentage — that
@@ -22,67 +48,74 @@ export function StageTimeline({ result }: StageTimelineProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="text-sm font-medium text-black/60 dark:text-white/60">
+      <div className="rounded-xl bg-surface-card p-4 shadow-soft-card md:p-6">
+        <h2 className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
           Summary
         </h2>
-        <p className="mt-1 text-base">{result.summary}</p>
+        <p className="mt-2 text-[15px] leading-relaxed text-on-surface">
+          {result.summary}
+        </p>
       </div>
 
       <ol className="flex flex-col gap-4">
         {STAGES.map((stage, index) => {
           const isReached = reached.has(stage);
           const segments = segmentsByStage.get(stage) ?? [];
+          const accent = STAGE_ACCENT[stage];
 
           return (
-            <li key={stage} className="flex gap-4">
-              <div className="flex flex-col items-center">
+            <li
+              key={stage}
+              className="overflow-hidden rounded-xl bg-surface-card shadow-soft-card"
+            >
+              <div
+                className={`flex gap-4 border-l-4 p-4 md:p-6 ${
+                  isReached ? accent.icon : "border-outline-variant"
+                }`}
+              >
                 <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                     isReached
-                      ? "bg-foreground text-background"
-                      : "bg-black/10 text-black/40 dark:bg-white/10 dark:text-white/40"
+                      ? `${accent.chip}`
+                      : "bg-surface-container text-on-surface-variant/50"
                   }`}
                 >
                   {index + 1}
                 </span>
-                {index < STAGES.length - 1 && (
-                  <span
-                    className={`mt-1 h-full w-px flex-1 ${
-                      isReached ? "bg-foreground" : "bg-black/10 dark:bg-white/10"
+
+                <div className="flex-1">
+                  <h3
+                    className={`text-sm font-bold ${
+                      isReached ? "text-on-surface" : "text-on-surface-variant/50"
                     }`}
-                  />
-                )}
-              </div>
+                  >
+                    {STAGE_LABELS[stage]}
+                    {!isReached && (
+                      <span className="ml-2 text-xs font-normal">
+                        not reached
+                      </span>
+                    )}
+                  </h3>
 
-              <div className="flex-1 pb-4">
-                <h3
-                  className={`text-sm font-semibold ${
-                    isReached ? "" : "text-black/40 dark:text-white/40"
-                  }`}
-                >
-                  {STAGE_LABELS[stage]}
-                  {!isReached && (
-                    <span className="ml-2 text-xs font-normal">not reached</span>
+                  {segments.length > 0 && (
+                    <ul className="mt-3 flex flex-col gap-2">
+                      {segments.map((segment) => (
+                        <li
+                          key={segment.message_index}
+                          className="rounded-lg bg-background p-3 text-sm"
+                        >
+                          <div className="flex items-center justify-between text-xs font-medium text-on-surface-variant">
+                            <span>message #{segment.message_index}</span>
+                            <span>
+                              confidence {Math.round(segment.confidence * 100)}%
+                            </span>
+                          </div>
+                          <p className="mt-1 text-on-surface">{segment.rationale}</p>
+                        </li>
+                      ))}
+                    </ul>
                   )}
-                </h3>
-
-                {segments.length > 0 && (
-                  <ul className="mt-2 flex flex-col gap-2">
-                    {segments.map((segment) => (
-                      <li
-                        key={segment.message_index}
-                        className="rounded-md border border-black/10 p-2 text-sm dark:border-white/15"
-                      >
-                        <div className="flex items-center justify-between text-xs text-black/50 dark:text-white/50">
-                          <span>message #{segment.message_index}</span>
-                          <span>confidence {Math.round(segment.confidence * 100)}%</span>
-                        </div>
-                        <p className="mt-1">{segment.rationale}</p>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                </div>
               </div>
             </li>
           );
@@ -90,27 +123,34 @@ export function StageTimeline({ result }: StageTimelineProps) {
       </ol>
 
       <div
-        className={`rounded-md border p-4 text-sm ${
+        className={`relative overflow-hidden rounded-xl p-5 shadow-soft-card md:p-6 ${
           isHighRisk
-            ? "border-red-500/40 bg-red-500/10"
-            : "border-amber-500/30 bg-amber-500/10"
+            ? "bg-error text-on-error"
+            : "bg-secondary-container/15 text-on-surface"
         }`}
       >
-        <p className="font-medium">This is not an automated accusation.</p>
+        <p className="text-sm font-bold uppercase tracking-wide">
+          This is not an automated accusation.
+        </p>
         {isHighRisk ? (
-          <p className="mt-1 text-black/70 dark:text-white/70">
-            This timeline shows escalation into the isolation/secrecy or desensitization
-            stages — human review is strongly recommended. Consider a real reporting
-            channel: <span className="font-medium">KPAI</span> or{" "}
-            <span className="font-medium">Kominfo Aduan Konten</span>. This tool does not
-            determine intent — a person must review the conversation.
+          <p className="mt-2 text-sm leading-relaxed opacity-95">
+            This timeline shows escalation into the isolation/secrecy or
+            desensitization stages — human review is strongly recommended.
+            Consider a real reporting channel:{" "}
+            <span className="font-bold">KPAI</span> or{" "}
+            <span className="font-bold">Kominfo Aduan Konten</span>. This tool
+            does not determine intent — a person must review the
+            conversation.
           </p>
         ) : (
-          <p className="mt-1 text-black/70 dark:text-white/70">
-            If this timeline raises concern, escalate to a real reporting channel:{" "}
-            <span className="font-medium">KPAI</span> or{" "}
-            <span className="font-medium">Kominfo Aduan Konten</span> — do not rely on this
-            tool alone.
+          <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">
+            If this timeline raises concern, escalate to a real reporting
+            channel: <span className="font-bold text-on-surface">KPAI</span>{" "}
+            or{" "}
+            <span className="font-bold text-on-surface">
+              Kominfo Aduan Konten
+            </span>{" "}
+            — do not rely on this tool alone.
           </p>
         )}
       </div>

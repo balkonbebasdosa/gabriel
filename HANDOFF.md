@@ -153,3 +153,40 @@ that this branch doesn't parse or render yet — a new feature, not part of this
 **next agent should:** if adding `conclusion` rendering, check `docs/api-contract.md` section 2
 on adit's branch (or after merge) for the exact shape and the `target_victim` /
 `active_participant` / `bystander` / `mediator` / `unclear` role vocabulary.
+
+### [branch: feat/frontend-gunta] — 2026-07-17 WIB
+
+**changed:** total UI revamp based on two Stitch-generated reference designs in `refs/`
+(desktop "Luminous Analytics" dashboard layout + mobile "Gabriel Analysis System" app layout).
+Merged into one responsive design system rather than picking one:
+- `src/app/globals.css`: Tailwind v4 `@theme` tokens for colors (blue primary, orange/green/purple
+  accents, warm off-white `#fdf7f0` background), rounded-xl/lg radii, soft-card/playful-button
+  shadow utilities. Dropped the old Geist fonts + `prefers-color-scheme` dark mode block — the new
+  system is deliberately light/warm-toned, matching both refs' screenshots.
+- `src/app/layout.tsx`: swapped Geist for Plus Jakarta Sans (UI) + Courier Prime (`font-transcript-mono`,
+  used on the transcript textarea), added Material Symbols Outlined via a `<link>` tag, wired in new
+  `Header`/`BottomNav` components.
+- New `src/components/Header.tsx` + `src/components/BottomNav.tsx`: airy top nav (logo +
+  Analysis/History/Settings) on `md:` and above, fixed top bar + fixed pill bottom nav on mobile.
+  **Only "Analysis" is a real link** — History/Settings render disabled (`title="Coming soon"`),
+  per explicit scope decision not to build stub pages as part of a visual revamp.
+- `src/app/page.tsx`: wrapped in the new nav shell, added a bento-style hero card. Copy was
+  deliberately rewritten from the refs' generic "Advanced Sentiment / 99.4% precision" marketing
+  copy to match GABRIEL's existing non-negotiable "not an automated verdict" framing — no
+  fabricated accuracy numbers.
+- `TranscriptUploadForm.tsx` / `StageTimeline.tsx`: restyled only (state/handlers/logic byte-for-byte
+  unchanged) — platform-select/paste/upload/POI cards on a 12-col responsive grid, stage-timeline
+  cards color-coded by risk (green trust_building → orange risk_assessment → purple
+  isolation_secrecy → red desensitization), escalation banner restyled as a colored bento card
+  (mild secondary-tinted vs urgent solid-red, same copy as before).
+
+**interface impact:** none — purely visual, no request/response shape or handler logic changed.
+
+**still open:** same items as before (Telegram parser unverified against a real export,
+`conclusion` object still unparsed). Visual verification was done via browser at both a desktop
+(~1500px) and mobile (~625px) viewport with a real submit-and-render pass, but not tested on an
+actual phone or against every platform's paste/upload path post-restyle.
+
+**next agent should:** if picking up `conclusion` rendering, match the new card visual language
+(`rounded-xl`, `shadow-soft-card`, `STAGE_ACCENT`-style color coding) rather than reintroducing the
+old plain-border styling.

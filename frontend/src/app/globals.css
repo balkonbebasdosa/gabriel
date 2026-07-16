@@ -1,26 +1,69 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Surfaces */
+  --color-background: #fdf7f0;
+  --color-surface-card: #ffffff;
+  --color-surface-container: #f3ede3;
+  --color-on-surface: #121c2a;
+  --color-on-surface-variant: #606470;
+  --color-outline-variant: #e8eaef;
+
+  /* Primary — blue, actions/navigation/neutral data */
+  --color-primary: #2d6cf6;
+  --color-primary-container: #e5edff;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #0a2c8f;
+
+  /* Secondary — orange, caution/warning */
+  --color-secondary: #9e4300;
+  --color-secondary-container: #fe8947;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #6a2a00;
+
+  /* Tertiary — green, safe/resolved/low-risk */
+  --color-tertiary: #006c35;
+  --color-tertiary-container: #008844;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #ffffff;
+
+  /* Quaternary — purple, high-risk / deep insight accent */
+  --color-quaternary: #4c1d95;
+  --color-quaternary-container: #8b5cf6;
+  --color-on-quaternary: #ffffff;
+  --color-on-quaternary-container: #ffffff;
+
+  /* Error — reserved for genuine failure states */
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error: #ffffff;
+  --color-on-error-container: #93000a;
+
+  /* Rounded, "soft geometry" shape language */
+  --radius-lg: 1.5rem;
+  --radius-xl: 2rem;
+
+  /* Typography */
+  --font-sans: var(--font-jakarta);
+  --font-transcript-mono: var(--font-courier-prime);
+
+  /* Elevation — soft ambient shadows, no harsh drop shadows */
+  --shadow-soft-card: 0 8px 30px rgba(18, 28, 42, 0.06);
+  --shadow-playful-button: 0 10px 20px -5px rgba(45, 108, 246, 0.35);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.material-symbols-outlined {
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 500,
+    "GRAD" 0,
+    "opsz" 24;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-on-surface);
+  -webkit-tap-highlight-color: transparent;
 }

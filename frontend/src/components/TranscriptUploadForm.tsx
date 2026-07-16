@@ -95,98 +95,176 @@ export function TranscriptUploadForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="platform" className="text-sm font-medium">
-          Source platform
-        </label>
-        <select
-          id="platform"
-          value={platform}
-          onChange={(event) => {
-            setPlatform(event.target.value as Platform);
-            clearFile();
-          }}
-          className="w-fit rounded-md border border-black/10 bg-transparent px-3 py-2 text-sm outline-none focus:border-black/30 dark:border-white/15 dark:focus:border-white/30"
-        >
-          {PLATFORMS.map((option) => (
-            <option key={option} value={option}>
-              {PLATFORM_LABELS[option]}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <label htmlFor="transcript" className="text-sm font-medium">
-        Paste transcript exported from {PLATFORM_LABELS[platform]}
-      </label>
-      <textarea
-        id="transcript"
-        value={raw}
-        onChange={(event) => {
-          setRaw(event.target.value);
-          if (selectedFile) clearFile();
-        }}
-        placeholder={PLATFORM_PLACEHOLDERS[platform]}
-        rows={10}
-        disabled={!!selectedFile}
-        className="w-full rounded-md border border-black/10 bg-transparent p-3 font-mono text-sm outline-none focus:border-black/30 disabled:opacity-40 dark:border-white/15 dark:focus:border-white/30"
-      />
-
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="transcript-file" className="text-sm font-medium">
-          Or upload an export file ({PLATFORM_FILE_ACCEPT[platform]})
-        </label>
-        <div className="flex items-center gap-2">
-          <input
-            ref={fileInputRef}
-            id="transcript-file"
-            type="file"
-            accept={PLATFORM_FILE_ACCEPT[platform]}
-            onChange={handleFileChange}
-            className="text-sm file:mr-3 file:rounded-md file:border-0 file:bg-black/5 file:px-3 file:py-1.5 file:text-sm file:font-medium dark:file:bg-white/10"
-          />
-          {selectedFile && (
-            <button
-              type="button"
-              onClick={clearFile}
-              className="text-xs text-black/50 underline dark:text-white/50"
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+        {/* Main input column */}
+        <div className="flex flex-col gap-6 md:col-span-8">
+          <div className="rounded-xl bg-surface-card p-4 shadow-soft-card md:p-6">
+            <label
+              htmlFor="platform"
+              className="mb-2 ml-1 block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant"
             >
-              clear
-            </button>
+              Source platform
+            </label>
+            <div className="relative">
+              <select
+                id="platform"
+                value={platform}
+                onChange={(event) => {
+                  setPlatform(event.target.value as Platform);
+                  clearFile();
+                }}
+                className="w-full appearance-none rounded-lg bg-background px-4 py-3 text-[15px] font-semibold text-on-surface outline-none transition-all focus:ring-2 focus:ring-primary/20"
+              >
+                {PLATFORMS.map((option) => (
+                  <option key={option} value={option}>
+                    {PLATFORM_LABELS[option]}
+                  </option>
+                ))}
+              </select>
+              <span className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-primary">
+                expand_more
+              </span>
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-surface-card p-4 shadow-soft-card md:p-6">
+            <div className="mb-3 flex items-center justify-between px-1">
+              <label
+                htmlFor="transcript"
+                className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant"
+              >
+                Paste transcript ({PLATFORM_LABELS[platform]})
+              </label>
+              <button
+                type="button"
+                onClick={() =>
+                  navigator.clipboard
+                    ?.readText()
+                    .then((text) => {
+                      setRaw(text);
+                      if (selectedFile) clearFile();
+                    })
+                    .catch(() => {})
+                }
+                className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-primary transition-opacity hover:opacity-70"
+              >
+                <span className="material-symbols-outlined text-[16px]">
+                  content_paste
+                </span>
+                Paste
+              </button>
+            </div>
+            <textarea
+              id="transcript"
+              value={raw}
+              onChange={(event) => {
+                setRaw(event.target.value);
+                if (selectedFile) clearFile();
+              }}
+              placeholder={PLATFORM_PLACEHOLDERS[platform]}
+              rows={10}
+              disabled={!!selectedFile}
+              className="w-full resize-none rounded-lg bg-background p-4 font-transcript-mono text-sm text-on-surface outline-none transition-all placeholder:opacity-40 focus:ring-2 focus:ring-primary/20 disabled:opacity-40"
+            />
+          </div>
+
+          {speakers.length > 0 && (
+            <div className="rounded-xl bg-surface-card p-4 shadow-soft-card md:p-6">
+              <label
+                htmlFor="poi"
+                className="mb-2 ml-1 block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant"
+              >
+                Who is the person being protected? (optional)
+              </label>
+              <div className="relative">
+                <select
+                  id="poi"
+                  value={poiSpeaker}
+                  onChange={(event) => setPoiSpeaker(event.target.value)}
+                  className="w-full appearance-none rounded-lg bg-background px-4 py-3 text-[15px] font-semibold text-on-surface outline-none transition-all focus:ring-2 focus:ring-primary/20"
+                >
+                  <option value="">Not specified</option>
+                  {speakers.map((speaker) => (
+                    <option key={speaker} value={speaker}>
+                      {speaker}
+                    </option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-primary">
+                  expand_more
+                </span>
+              </div>
+            </div>
           )}
         </div>
+
+        {/* File upload column */}
+        <aside className="md:col-span-4">
+          <div className="flex h-full flex-col rounded-xl bg-surface-card p-4 shadow-soft-card md:p-6">
+            <h3 className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+              Or upload an export file
+            </h3>
+            <label
+              htmlFor="transcript-file"
+              className="group flex flex-1 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/20 p-6 text-center transition-all hover:border-primary/40 hover:bg-primary/5"
+            >
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 transition-transform group-hover:scale-105">
+                <span className="material-symbols-outlined text-[28px] text-primary">
+                  cloud_upload
+                </span>
+              </div>
+              <span className="text-sm font-bold text-primary">
+                {selectedFile ? selectedFile.name : "Drop file here"}
+              </span>
+              <span className="mt-1 text-xs text-on-surface-variant/70">
+                {selectedFile
+                  ? "click to replace"
+                  : `or browse (${PLATFORM_FILE_ACCEPT[platform]})`}
+              </span>
+              <input
+                ref={fileInputRef}
+                id="transcript-file"
+                type="file"
+                accept={PLATFORM_FILE_ACCEPT[platform]}
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </label>
+            {selectedFile && (
+              <button
+                type="button"
+                onClick={clearFile}
+                className="mt-3 text-xs font-semibold text-on-surface-variant underline"
+              >
+                clear file
+              </button>
+            )}
+          </div>
+        </aside>
       </div>
 
-      {speakers.length > 0 && (
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="poi" className="text-sm font-medium">
-            Who is the person being protected? (optional)
-          </label>
-          <select
-            id="poi"
-            value={poiSpeaker}
-            onChange={(event) => setPoiSpeaker(event.target.value)}
-            className="w-fit rounded-md border border-black/10 bg-transparent px-3 py-2 text-sm outline-none focus:border-black/30 dark:border-white/15 dark:focus:border-white/30"
-          >
-            <option value="">Not specified</option>
-            {speakers.map((speaker) => (
-              <option key={speaker} value={speaker}>
-                {speaker}
-              </option>
-            ))}
-          </select>
-        </div>
+      {error && (
+        <p className="rounded-lg bg-error-container px-4 py-3 text-sm font-medium text-on-error-container">
+          {error}
+        </p>
       )}
 
-      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="self-start rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background disabled:opacity-50"
-      >
-        {isSubmitting ? "Analyzing…" : "Analyze transcript"}
-      </button>
+      <div className="flex justify-center">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="group flex items-center gap-3 rounded-full bg-primary px-8 py-4 text-[15px] font-extrabold text-on-primary shadow-playful-button transition-all hover:-translate-y-0.5 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+        >
+          <span
+            className="material-symbols-outlined text-[20px]"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+          >
+            analytics
+          </span>
+          {isSubmitting ? "Analyzing…" : "Analyze transcript"}
+        </button>
+      </div>
     </form>
   );
 }
