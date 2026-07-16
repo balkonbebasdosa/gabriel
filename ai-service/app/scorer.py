@@ -1,5 +1,5 @@
 from app.llm_client import tag_transcript
-from app.schemas import STAGE_ORDER, AnalyzeResponse, Segment, Stage
+from app.schemas import STAGE_ORDER, AnalyzeResponse, Conclusion, Segment, Stage
 
 STAGE_REACHED_THRESHOLD = 0.5
 
@@ -30,12 +30,23 @@ def _compute_progression(segments: list[Segment]) -> tuple[float, list[Stage]]:
     return progression_score, reached
 
 
-def analyze(transcript: list[dict]) -> AnalyzeResponse:
+def analyze(transcript: list[dict], person_of_interest: str | None = None) -> AnalyzeResponse:
     llm_output = tag_transcript(transcript)
     progression_score, stages_reached = _compute_progression(llm_output.segments)
+
+    person_of_interest_summary = next(
+        (p for p in llm_output.participants if p.speaker == person_of_interest),
+        None,
+    )
+    conclusion = Conclusion(
+        participants=llm_output.participants,
+        person_of_interest_summary=person_of_interest_summary,
+    )
+
     return AnalyzeResponse(
         segments=llm_output.segments,
         progression_score=progression_score,
         stages_reached=stages_reached,
         summary=llm_output.summary,
+        conclusion=conclusion,
     )

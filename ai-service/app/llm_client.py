@@ -5,7 +5,7 @@ from groq import APIStatusError, Groq, RateLimitError
 from pydantic import BaseModel, ConfigDict
 
 from app.rubric import SYSTEM_PROMPT, build_user_prompt
-from app.schemas import Segment
+from app.schemas import ParticipantProfile, Segment
 
 _client: Groq | None = None
 
@@ -18,6 +18,7 @@ class LLMOutput(BaseModel):
 
     segments: list[Segment]
     summary: str
+    participants: list[ParticipantProfile]
 
 
 def _get_client() -> Groq:
@@ -43,12 +44,14 @@ def tag_transcript(transcript: list[dict]) -> LLMOutput:
     model = os.environ.get("GROQ_MODEL", "openai/gpt-oss-20b")
     client = _get_client()
 
-    # Scales with transcript length: one segment (stage/confidence/rationale) per message
-    # plus a summary, all as JSON. A fixed small default previously caused Groq to cut the
-    # completion off mid-JSON, which strict schema validation then reported as "does not
-    # match schema" — indistinguishable from a genuine refusal until inspected. This has
-    # no cost impact on short requests: it's a ceiling, not a target length.
-    max_tokens = min(300 + 120 * len(transcript), 8000)
+    # Scales with transcript length: one segment (stage/confidence/rationale) per message,
+    # a summary, and now one participant profile per distinct speaker, all as JSON. A fixed
+    # small default previously caused Groq to cut the completion off mid-JSON, which strict
+    # schema validation then reported as "does not match schema" — indistinguishable from a
+    # genuine refusal until inspected. This has no cost impact on short requests: it's a
+    # ceiling, not a target length.
+    distinct_speakers = len({m["speaker"] for m in transcript})
+    max_tokens = min(300 + 120 * len(transcript) + 150 * distinct_speakers, 8000)
 
     for attempt in range(MAX_RETRIES):
         try:

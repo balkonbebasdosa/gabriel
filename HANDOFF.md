@@ -173,3 +173,43 @@ this session's code just came into compliance with it.
 **next agent should:** pull this branch before building anything else on `feat/backend-adit` —
 the stage-name fix matters for integration. Service is ready to run as described in the previous
 entry. If picking up PAN12 eval, check quota reset status first.
+
+---
+
+### [branch: feat/ai-gabriel] — 2026-07-17 (session 4 end)
+
+**changed:** added a second output layer to `/analyze`, additive to the existing contract:
+- Request gains an optional `person_of_interest` field (a `speaker` value from the transcript —
+  typically the child/minor a parent is focused on).
+- Response gains a `conclusion` object: `participants` (one profile per distinct speaker, each
+  with a `role` — `target_victim` | `active_participant` | `bystander` | `mediator` | `unclear`
+  — and a `behavior_summary` covering their conduct across the whole conversation) plus
+  `person_of_interest_summary` (the matching `participants` entry, or `null` if not requested/
+  not found).
+- Implementation: one model call still, unchanged in count — `app/rubric.py`'s system prompt
+  now asks for the `participants` array alongside the existing per-message `segments`, since role
+  classification needs the same holistic view the model already has. `app/llm_client.py`'s
+  `max_tokens` formula bumped to account for it. `app/scorer.py` builds `Conclusion` by looking
+  up `person_of_interest` in the LLM's own `participants` output — no separate call or prompt
+  needed for that part.
+- `unclear` role added beyond the four the request specified, for the same reason low-confidence
+  `trust_building` already exists — verified live: a 2-message neutral transcript correctly got
+  `unclear` for both speakers instead of a forced guess.
+
+**interface impact:** yes, but additive/backward-compatible — existing callers that don't send
+`person_of_interest` get `conclusion.person_of_interest_summary: null` and everything else
+unchanged. `docs/api-contract.md` updated with a note flagging this for Adit specifically, since
+that file is jointly owned — worth a direct ping, not just relying on him reading the diff.
+
+**verified live (3 calls, minimal quota use):** full-escalation demo transcript with
+`person_of_interest` set → correct `active_participant`/`target_victim` split and matching
+summary; a benign 2-message transcript with `person_of_interest` omitted → `null` summary,
+`unclear` roles, nothing broke; `eval/run_eval.py` still imports and its existing `analyze(...)`
+call site is unaffected (new param is optional).
+
+**still open:** same PAN12/quota items as session 3 — untouched by this session's work, since
+this change doesn't involve the rubric threshold or eval methodology at all.
+
+**next agent should:** if extending `conclusion` further, keep it to one LLM call — don't add a
+second model round-trip for something the model can already reason about holistically in the
+first one. Sync with Adit before the frontend/backend start depending on `conclusion` fields.

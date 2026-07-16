@@ -18,6 +18,14 @@ STAGE_ORDER = [
 ]
 
 
+class ParticipantRole(str, Enum):
+    target_victim = "target_victim"
+    active_participant = "active_participant"
+    bystander = "bystander"
+    mediator = "mediator"
+    unclear = "unclear"
+
+
 class TranscriptMessage(BaseModel):
     speaker: str
     message: str
@@ -26,6 +34,9 @@ class TranscriptMessage(BaseModel):
 
 class AnalyzeRequest(BaseModel):
     transcript: list[TranscriptMessage]
+    # Speaker label (must match a `speaker` value in transcript) the caller wants a focused
+    # conclusion on — typically the child/minor. Optional; existing callers unaffected.
+    person_of_interest: str | None = None
 
 
 class Segment(BaseModel):
@@ -39,8 +50,22 @@ class Segment(BaseModel):
     rationale: str
 
 
+class ParticipantProfile(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    speaker: str
+    role: ParticipantRole
+    behavior_summary: str
+
+
+class Conclusion(BaseModel):
+    participants: list[ParticipantProfile]
+    person_of_interest_summary: ParticipantProfile | None = None
+
+
 class AnalyzeResponse(BaseModel):
     segments: list[Segment]
     progression_score: float = Field(ge=0.0, le=1.0)
     stages_reached: list[Stage]
     summary: str
+    conclusion: Conclusion

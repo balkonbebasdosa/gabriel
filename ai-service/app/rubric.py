@@ -38,6 +38,24 @@ regardless of what generated it.
 Also produce a short (1-2 sentence) neutral summary of the conversation's overall trajectory across \
 the stages observed so far. Do not state a verdict in the summary either — describe what was observed.
 
+In addition, for every distinct speaker appearing in the transcript, produce one participant \
+profile: their speaker label, a role, and a 1-2 sentence behavior_summary describing their conduct \
+across the *whole* conversation (same rule as segment rationale — describe the category of \
+behavior, never quote or closely paraphrase explicit wording). Role is one of:
+
+1. target_victim — the apparent recipient of the conversation's escalating/concerning behavior, \
+if any. This is a descriptive label about conversational dynamics, not a legal or clinical \
+determination.
+2. active_participant — the party driving the conversation's direction or stage progression, \
+whether the conversation is benign or escalating.
+3. bystander — present in the conversation but not meaningfully driving its direction.
+4. mediator — pushes back, redirects, or de-escalates (e.g. declining a request, changing the \
+subject away from risk, or a third party intervening).
+5. unclear — use this rather than guessing when the transcript is too short or too neutral to \
+support a confident role assignment (e.g. a two-message benign exchange).
+
+Assign exactly one role per speaker based on the whole conversation, not per message.
+
 Output must be valid JSON matching the provided schema only. No prose outside the schema fields.
 """
 

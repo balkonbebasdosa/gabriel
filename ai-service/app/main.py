@@ -17,4 +17,4 @@ def health():
 @app.post("/analyze", response_model=AnalyzeResponse)
 def analyze_transcript(request: AnalyzeRequest) -> AnalyzeResponse:
     transcript = [m.model_dump() for m in request.transcript]
-    return analyze(transcript)
+    return analyze(transcript, person_of_interest=request.person_of_interest)
