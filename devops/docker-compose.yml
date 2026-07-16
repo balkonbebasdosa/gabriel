@@ -1,0 +1,43 @@
+services:
+  backend:
+    build: ../backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/gabriel
+      - SPRING_DATASOURCE_USERNAME=gabriel
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - AI_SERVICE_URL=http://ai-service:8000
+    depends_on:
+      - postgres
+      - ai-service
+
+  ai-service:
+    build: ../ai-service
+    ports:
+      - "8000:8000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+
+  frontend:
+    build: ../frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+    depends_on:
+      - backend
+
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=gabriel
+      - POSTGRES_USER=gabriel
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
