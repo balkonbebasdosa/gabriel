@@ -2,8 +2,8 @@
 
 Single source of truth for the interfaces between the three services:
 
-- **Frontend (Gunta)** → **Backend (Adit)** — sections 1–4 below.
-- **Backend (Adit)** → **AI service (Gabriel)** — section 6 below (canonical; owned jointly by `backend` and `ai-service` — any change to this schema must be reflected on both sides in the same PR).
+- **Frontend (Gunta)** → **Backend (Adit)** — sections 0–5 below.
+- **Backend (Adit)** → **AI service (Gabriel)** — section 7 below (canonical; owned jointly by `backend` and `ai-service` — any change to this schema must be reflected on both sides in the same PR).
 
 The frontend never calls the AI service directly. All traffic to the AI service is proxied through the backend.
 
@@ -42,9 +42,51 @@ It flags risk for **human review only**. `progression_score` (see below) is a 0�
 
 ---
 
+## 0. Authentication
+
+**Simulated auth** (added 2026-07-17): register/login with email+password, opaque bearer token, no OAuth/email verification/password reset. Every endpoint under `/transcripts/**` now requires it — a transcript belongs to exactly the user who uploaded it, and `GET`s of another user's transcript 404 (not 403 — a non-owner can't distinguish "doesn't exist" from "not yours").
+
+### `POST /auth/register`
+
+**Request body:**
+
+```json
+{ "email": "parent@example.com", "password": "at least 8 characters" }
+```
+
+`email` must be a well-formed address (rejected with `400` otherwise). `password` must be at least 8 characters. Duplicate email → `409`.
+
+**Response `201 Created`:**
+
+```json
+{
+  "user_id": "8f14e45f-ceea-4b8a-b41f-9f7c6a1e0d3a",
+  "email": "parent@example.com",
+  "token": "3s9pQ...opaque-url-safe-base64...kX2"
+}
+```
+
+### `POST /auth/login`
+
+Same request/response shape as register (minus the `409` case). Wrong password or unknown email both return the same `401` with a generic message — the API never reveals whether an email is registered.
+
+### Using the token
+
+Every `/transcripts/**` request needs:
+
+```
+Authorization: Bearer <token>
+```
+
+Missing or invalid token → `401`. A fresh token is issued on every login (previous tokens for that user stop working — one active session at a time, no refresh/expiry beyond that).
+
+---
+
 ## 1. `POST /transcripts`
 
-Uploads a raw transcript for storage. Body is a **bare JSON array** of messages (not wrapped in an object).
+*Requires `Authorization` header — see section 0.*
+
+Uploads a raw transcript for storage, owned by the authenticated caller. Body is a **bare JSON array** of messages (not wrapped in an object).
 
 **Request body:**
 
@@ -69,9 +111,30 @@ Each message requires a non-blank `speaker`, non-blank `message`, and a valid IS
 
 ---
 
-## 2. `POST /transcripts/{id}/analyze`
+## 2. `GET /transcripts`
 
-Loads the stored transcript, calls the AI service's `POST /analyze` (see section 6), persists the result, and returns it.
+*Requires `Authorization` header.*
+
+**Chat history list** — every transcript the authenticated caller has uploaded, newest first, each with its latest analysis embedded if one exists. Same per-item shape as section 4 (`GET /transcripts/{id}`), just returned as an array:
+
+```json
+[
+  {
+    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "created_at": "2026-07-16T14:05:00Z",
+    "messages": [ /* ... */ ],
+    "latest_analysis": { /* ... or null */ }
+  }
+]
+```
+
+---
+
+## 3. `POST /transcripts/{id}/analyze`
+
+*Requires `Authorization` header — `404` if the id doesn't exist **or** belongs to another user.*
+
+Loads the stored transcript, calls the AI service's `POST /analyze` (see section 7), persists the result, and returns it.
 
 **Request body (optional — omit entirely, or omit `person_of_interest`, for the pre-existing behavior):**
 
@@ -115,11 +178,13 @@ Loads the stored transcript, calls the AI service's `POST /analyze` (see section
 
 `conclusion` is always present. `person_of_interest_summary` is `null` if `person_of_interest` wasn't provided in the request.
 
-`404` if the transcript id does not exist. `400` if `person_of_interest` is provided but doesn't match any speaker in the transcript.
+`404` if the transcript id does not exist or isn't owned by the caller. `400` if `person_of_interest` is provided but doesn't match any speaker in the transcript.
 
 ---
 
-## 3. `GET /transcripts/{id}`
+## 4. `GET /transcripts/{id}`
+
+*Requires `Authorization` header — `404` if the id doesn't exist **or** belongs to another user.*
 
 Returns the stored transcript plus its latest analysis result, if one exists (`latest_analysis: null` if `/analyze` has never been called for this transcript).
 
@@ -154,13 +219,13 @@ Returns the stored transcript plus its latest analysis result, if one exists (`l
 }
 ```
 
-`404` if the transcript id does not exist.
+`404` if the transcript id does not exist or isn't owned by the caller.
 
 ---
 
-## 4. `GET /health`
+## 5. `GET /health`
 
-Simple liveness check.
+Public — no `Authorization` header needed.
 
 **Response `200 OK`:**
 
@@ -170,7 +235,7 @@ Simple liveness check.
 
 ---
 
-## 5. Error shape
+## 6. Error shape
 
 Any `4xx`/`5xx` response from the backend uses:
 
@@ -180,11 +245,11 @@ Any `4xx`/`5xx` response from the backend uses:
 
 ---
 
-## 6. Backend → AI service: `POST {AI_SERVICE_URL}/analyze`
+## 7. Backend → AI service: `POST {AI_SERVICE_URL}/analyze`
 
 Owned jointly by `backend` (caller) and `ai-service` (implementer). Any change to this schema must be reflected on both sides in the same PR.
 
-`ai-service` is stateless; `backend` persists the raw transcript and the analysis result.
+`ai-service` is stateless; `backend` persists the raw transcript and the analysis result. This call has no concept of users/auth — the backend resolves ownership before ever reaching this call.
 
 ### Request
 
@@ -247,7 +312,4 @@ Owned jointly by `backend` (caller) and `ai-service` (implementer). Any change t
   `person_of_interest_summary` mirrors whichever `participants` entry matches the request's
   `person_of_interest`, or `null` if it wasn't provided or didn't match any speaker.
 
-**Note (2026-07-17):** `person_of_interest` (request) and `conclusion` (response) are new,
-additive/backward-compatible fields from `ai-service` — see its `HANDOFF.md` session 4 entry.
-The backend now validates `person_of_interest` against the transcript's speakers (`400` if it
-doesn't match any) and persists/exposes `conclusion` through sections 2 and 3 above.
+**Note (2026-07-17):** `person_of_interest` (request) and `conclusion` (response) are additive/backward-compatible fields from `ai-service` — see its `HANDOFF.md` session 4 entry. The backend validates `person_of_interest` against the transcript's speakers (`400` if it doesn't match any) and persists/exposes `conclusion` through sections 3 and 4 above.

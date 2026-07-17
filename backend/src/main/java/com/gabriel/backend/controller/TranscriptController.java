@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,21 +35,30 @@ public class TranscriptController {
 
     @PostMapping
     public ResponseEntity<TranscriptCreatedResponse> uploadTranscript(
+            @RequestAttribute UUID currentUserId,
             @RequestBody(required = false) List<MessageRequest> messages) {
-        Transcript transcript = transcriptService.createTranscript(messages);
+        Transcript transcript = transcriptService.createTranscript(messages, currentUserId);
         return ResponseEntity.status(HttpStatus.CREATED).body(TranscriptCreatedResponse.from(transcript));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<TranscriptDetailResponse>> listTranscripts(@RequestAttribute UUID currentUserId) {
+        return ResponseEntity.ok(transcriptService.listTranscripts(currentUserId));
     }
 
     @PostMapping("/{id}/analyze")
     public ResponseEntity<AnalysisResponse> analyzeTranscript(
+            @RequestAttribute UUID currentUserId,
             @PathVariable UUID id,
             @RequestBody(required = false) AnalyzeTranscriptRequest request) {
         String personOfInterest = request == null ? null : request.personOfInterest();
-        return ResponseEntity.ok(analysisService.analyzeTranscript(id, personOfInterest));
+        return ResponseEntity.ok(analysisService.analyzeTranscript(id, currentUserId, personOfInterest));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TranscriptDetailResponse> getTranscript(@PathVariable UUID id) {
-        return ResponseEntity.ok(transcriptService.getTranscriptDetail(id));
+    public ResponseEntity<TranscriptDetailResponse> getTranscript(
+            @RequestAttribute UUID currentUserId,
+            @PathVariable UUID id) {
+        return ResponseEntity.ok(transcriptService.getTranscriptDetail(id, currentUserId));
     }
 }
