@@ -530,3 +530,57 @@ GitHub (not just locally) — the two bugs fixed here were only caught by runnin
 commands locally, so it's worth double-checking nothing else was masked by a runner-specific
 difference. Branch protection / Vercel wiring on `main` (see `main`'s entry above) is still
 unconfigured and out of scope here.
+
+---
+
+### [branch: staging] — 2026-07-17 WIB
+
+**changed:** fixed a real backend↔ai-service integration bug, then redesigned the results
+screen and finally rendered `conclusion` (participant roles) end-to-end.
+- `backend/.../client/HttpAnalyzeClient.java`: `AI_SERVICE_MOCK=false` had never actually been
+  tested against a live `ai-service` before now. Spring's default JDK `HttpClient` prefers
+  HTTP/2 and sends a cleartext (h2c) Upgrade probe first, withholding the request body until the
+  upgrade completes — `ai-service` (uvicorn) doesn't understand h2c, so it silently received an
+  empty body on every `/analyze` call and 422'd, which the generic exception handler reported as
+  an opaque 502. Fixed by forcing HTTP/1.1 on the client. Verified end-to-end with a real
+  Groq-backed `ai-service`: a full 28-message escalation transcript correctly climbed all four
+  stages and identified the right participant as `target_victim`.
+- Full frontend design pass (spec: `docs/superpowers/specs/2026-07-17-results-screen-redesign-design.md`,
+  plan: `docs/superpowers/plans/2026-07-17-results-screen-redesign.md`, both committed) via
+  brainstorming → writing-plans → subagent-driven-development, all four tasks individually
+  reviewed clean plus a final whole-branch review (Ready to merge: Yes):
+  - `frontend/src/lib/types.ts` / `mock.ts`: added `Participant`/`ParticipantRole`/`Conclusion`
+    types and `AnalysisResult.conclusion` — this was the previous entry's "still open" item,
+    now closed. Mock fixture updated in lockstep so the no-backend demo path also exercises it.
+  - `StageTimeline.tsx`: new "Participants" section renders `conclusion.participants[]`, with
+    `person_of_interest_summary` (if set) pinned above the full list. Role values render as-is
+    (`target_victim`/`active_participant`/`bystander`/`mediator`/`unclear`), no relabeling, same
+    "descriptive, not an accusation" framing as `stage`. `message #N` references are now a real
+    `<button>` that click-to-expands the original `speaker: message` text inline (looked up from
+    a `transcript` prop `page.tsx` now retains after submit — previously discarded), namespaced
+    per-stage so two segments in different stages sharing a `message_index` can't co-expand each
+    other. Progression card restyled with a big "Stage N of 4 reached" headline + 4-segment
+    colored bar (`STAGE_ACCENT` mapping unchanged, still green→orange→purple→red, semantic not
+    decorative). `progression_score` still never rendered as a bare percentage anywhere.
+  - `globals.css`: two new pastel tokens (`--color-progression-bg`, `--color-poi-bg`) reused by
+    the participants rows and (Task 3/4) the upload form's platform/POI cards and desktop nav's
+    active-link pill — replacing the thin-underline nav treatment that read as generic SaaS chrome.
+  - No backend/`docs/api-contract.md` changes — `conclusion` was already fully implemented
+    server-side; this was pure frontend consumption.
+
+**interface impact:** none to the wire contract. The backend fix changes only how the backend's
+own outbound HTTP client is configured, not any request/response shape.
+
+**still open:**
+- Telegram parser still unverified against a real export (carried forward, untouched again).
+- `staging` is 26 commits ahead of `origin/staging` and has not been pushed yet (team decision
+  pending, not a technical blocker) — includes the 4-branch merge, two CI bugfixes, the
+  backend↔ai-service fix, and this whole redesign.
+- Visual verification was manual browser checks at ~1500px/~625px per the plan's testing
+  approach (this frontend still has no unit-test framework) — not tested on an actual phone.
+
+**next agent should:** if extending the participants section further (e.g. showing more than
+`behavior_summary`), keep the "descriptive, not an accusation" framing — role values must never
+gain interpretive/judgmental text. Once `staging` is pushed, watch for the CI ai-service/backend
+jobs actually exercising the new `conclusion`-dependent code paths (they didn't exist before this
+session's merge, so this is their first real run on GitHub's runners).
