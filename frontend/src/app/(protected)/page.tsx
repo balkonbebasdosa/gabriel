@@ -58,6 +58,27 @@ export default function HomePage() {
           </ol>
         </section>
 
+        {/* Export help */}
+        <section className="rounded-xl bg-surface-card p-4 shadow-soft-card md:p-6">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+            <div>
+              <h2 className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+                Not sure how to export your chat?
+              </h2>
+              <p className="mt-1 text-sm text-on-surface-variant">
+                Step-by-step guides for exporting a plain-text file from WhatsApp or LINE.
+              </p>
+            </div>
+            <Link
+              href="/tutorial"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-primary-container px-5 py-2.5 text-sm font-bold text-on-primary-container transition-all hover:-translate-y-0.5 active:scale-95"
+            >
+              <span className="material-symbols-outlined text-[18px]">help</span>
+              View export guides
+            </Link>
+          </div>
+        </section>
+
         <p className="text-center text-sm text-on-surface-variant">
           Already have transcripts saved?{" "}
           <Link href="/history" className="font-semibold text-primary">

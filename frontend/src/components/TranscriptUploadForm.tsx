@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import {
   Platform,
   PLATFORM_FILE_ACCEPT,
@@ -11,6 +12,11 @@ import {
   parseTranscriptText,
 } from "@/lib/parse-transcript";
 import { TranscriptMessage } from "@/lib/types";
+
+const EXPORT_TUTORIAL_HREF: Partial<Record<Platform, string>> = {
+  whatsapp: "/tutorials/whatsapp",
+  line: "/tutorials/line",
+};
 
 interface TranscriptUploadFormProps {
   onSubmit: (messages: TranscriptMessage[], poiSpeaker?: string) => void;
@@ -146,6 +152,15 @@ export function TranscriptUploadForm({
                 expand_more
               </span>
             </div>
+            {EXPORT_TUTORIAL_HREF[platform] && (
+              <Link
+                href={EXPORT_TUTORIAL_HREF[platform]!}
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-primary transition-opacity hover:opacity-70"
+              >
+                <span className="material-symbols-outlined text-[16px]">help</span>
+                How do I export my {PLATFORM_LABELS[platform]} chat?
+              </Link>
+            )}
           </div>
 
           <div className="rounded-xl bg-surface-card p-4 shadow-soft-card md:p-6">
