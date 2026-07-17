@@ -21,7 +21,7 @@ human review — it never issues an automated accusation.
 
 - **Backend**: Spring Boot 4.1, PostgreSQL, Spring Data JPA (bumped from the originally planned
   3.x — `start.spring.io` dropped 3.x support before this was built; see `backend/README.md`)
-- **AI service**: Python, FastAPI, Groq API (`openai/gpt-oss-20b`)
+- **AI service**: Python, FastAPI, OpenRouter API (`openai/gpt-oss-20b`)
 - **Frontend**: Next.js, React, Tailwind CSS, Recharts
 - **Data store**: PostgreSQL
 - **DevOps**: Docker Compose, GitHub Actions (lint + build)

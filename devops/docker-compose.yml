@@ -17,9 +17,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # Switched from Anthropic to Groq — see ai-service/HANDOFF.md session 2 entry for why.
-      - GROQ_API_KEY=${GROQ_API_KEY}
-      - GROQ_MODEL=${GROQ_MODEL:-openai/gpt-oss-20b}
+      # Anthropic -> Groq -> OpenRouter — see ai-service/HANDOFF.md for why each switch happened.
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-openai/gpt-oss-20b}
 
   frontend:
     build: ../frontend
