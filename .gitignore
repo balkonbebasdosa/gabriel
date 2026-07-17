@@ -1,5 +1,6 @@
 # AI tooling
 .claude/
+.superpowers/
 
 # Node
 node_modules/
