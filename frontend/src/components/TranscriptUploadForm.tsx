@@ -27,6 +27,7 @@ export function TranscriptUploadForm({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileMessages, setFileMessages] = useState<TranscriptMessage[]>([]);
   const [poiSpeaker, setPoiSpeaker] = useState<string>("");
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // A file upload, when present, takes precedence over the pasted text —
@@ -47,8 +48,7 @@ export function TranscriptUploadForm({
     [messages]
   );
 
-  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0] ?? null;
+  async function loadFile(file: File | null) {
     setSelectedFile(file);
     setPoiSpeaker("");
 
@@ -69,6 +69,26 @@ export function TranscriptUploadForm({
         `Couldn't parse "${file.name}" as a ${PLATFORM_LABELS[platform]} export.`
       );
     }
+  }
+
+  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    void loadFile(event.target.files?.[0] ?? null);
+  }
+
+  function handleDragOver(event: React.DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    setIsDraggingOver(true);
+  }
+
+  function handleDragLeave(event: React.DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    setIsDraggingOver(false);
+  }
+
+  function handleDrop(event: React.DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    setIsDraggingOver(false);
+    void loadFile(event.dataTransfer.files?.[0] ?? null);
   }
 
   function clearFile() {
@@ -207,7 +227,14 @@ export function TranscriptUploadForm({
             </h3>
             <label
               htmlFor="transcript-file"
-              className="group flex flex-1 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/20 p-6 text-center transition-all hover:border-primary/40 hover:bg-primary/5"
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`group flex flex-1 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-all ${
+                isDraggingOver
+                  ? "border-primary/60 bg-primary/10"
+                  : "border-primary/20 hover:border-primary/40 hover:bg-primary/5"
+              }`}
             >
               <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-secondary-container transition-transform group-hover:scale-105">
                 <span className="material-symbols-outlined text-[28px] text-on-secondary">

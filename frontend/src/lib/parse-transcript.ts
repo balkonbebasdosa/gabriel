@@ -181,10 +181,17 @@ function parseDiscord(raw: string): TranscriptMessage[] {
 }
 
 // Matches LINE's tab-separated export line: "14:02\tMom\ttext". A bare date
-// header line (e.g. "2026.07.16") updates the running date for subsequent
-// time-only lines and is otherwise skipped.
+// header line (e.g. "2026.07.16" or "2026.07.16 Thursday" — some export tools
+// append the weekday name) updates the running date for subsequent time-only
+// lines and is otherwise skipped.
 const LINE_DATE_HEADER = /^\d{4}[./]\d{1,2}[./]\d{1,2}/;
-const LINE_MESSAGE = /^(\d{1,2}:\d{2})\t([^\t]+)\t(.*)$/;
+const LINE_MESSAGE_TAB = /^(\d{1,2}:\d{2})\t([^\t]+)\t(.*)$/;
+// Some LINE export tools (e.g. phone-backup extractors) use a single space
+// instead of tabs — "14:02 Mom text". Ambiguous for multi-word speaker names,
+// so this variant assumes a single-token speaker (true for display names
+// without spaces, which covers real exports seen so far); the tab variant is
+// tried first and takes priority whenever it matches.
+const LINE_MESSAGE_SPACE = /^(\d{1,2}:\d{2}) (\S+) (.*)$/;
 
 function parseLine(raw: string): TranscriptMessage[] {
   const messages: TranscriptMessage[] = [];
@@ -199,7 +206,7 @@ function parseLine(raw: string): TranscriptMessage[] {
       continue;
     }
 
-    const match = line.match(LINE_MESSAGE);
+    const match = line.match(LINE_MESSAGE_TAB) ?? line.match(LINE_MESSAGE_SPACE);
 
     if (match) {
       const [, time, speaker, message] = match;
