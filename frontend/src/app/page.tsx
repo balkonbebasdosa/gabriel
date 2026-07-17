@@ -8,6 +8,9 @@ import { AnalysisResult, TranscriptMessage } from "@/lib/types";
 
 export default function Home() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [submittedTranscript, setSubmittedTranscript] = useState<
+    TranscriptMessage[] | null
+  >(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,6 +20,7 @@ export default function Home() {
     try {
       const analysis = await analyzeTranscript(transcript, poiSpeaker);
       setResult(analysis);
+      setSubmittedTranscript(transcript);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Analysis failed.");
     } finally {
@@ -53,7 +57,9 @@ export default function Home() {
           </p>
         )}
 
-        {result && <StageTimeline result={result} />}
+        {result && submittedTranscript && (
+          <StageTimeline result={result} transcript={submittedTranscript} />
+        )}
       </main>
     </div>
   );

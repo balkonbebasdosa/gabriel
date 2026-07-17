@@ -1,7 +1,18 @@
-import { AnalysisResult, STAGES, STAGE_LABELS, Stage } from "@/lib/types";
+"use client";
+
+import { useMemo, useState } from "react";
+import {
+  AnalysisResult,
+  Participant,
+  STAGES,
+  STAGE_LABELS,
+  Stage,
+  TranscriptMessage,
+} from "@/lib/types";
 
 interface StageTimelineProps {
   result: AnalysisResult;
+  transcript: TranscriptMessage[];
 }
 
 const STAGE_ACCENT: Record<
@@ -30,12 +41,46 @@ const STAGE_ACCENT: Record<
   },
 };
 
+function ParticipantRow({
+  participant,
+  highlight,
+}: {
+  participant: Participant;
+  highlight: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center gap-3 rounded-lg p-3 ${
+        highlight ? "bg-poi-bg" : "bg-progression-bg"
+      }`}
+    >
+      <span
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+          highlight
+            ? "bg-tertiary text-on-tertiary"
+            : "bg-secondary-container text-on-secondary"
+        }`}
+      >
+        {participant.speaker.slice(0, 1).toUpperCase()}
+      </span>
+      <div>
+        <p className="text-xs font-bold text-on-surface">
+          {participant.speaker} · {participant.role}
+        </p>
+        <p className="text-xs text-on-surface-variant">
+          {participant.behavior_summary}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 /**
  * Renders the four-stage progression as a timeline with per-segment
  * rationale. progression_score is never shown as a bare percentage — that
  * framing is called out as non-negotiable in docs/api-contract.md.
  */
-export function StageTimeline({ result }: StageTimelineProps) {
+export function StageTimeline({ result, transcript }: StageTimelineProps) {
   const reached = new Set(result.stages_reached);
   const isHighRisk =
     reached.has("isolation_secrecy") || reached.has("desensitization");
@@ -46,15 +91,81 @@ export function StageTimeline({ result }: StageTimelineProps) {
     segmentsByStage.set(segment.stage, existing);
   }
 
+  const messagesByIndex = useMemo(() => {
+    const map = new Map<number, TranscriptMessage>();
+    transcript.forEach((message, index) => map.set(index, message));
+    return map;
+  }, [transcript]);
+
+  const [expandedIndices, setExpandedIndices] = useState<Set<number>>(
+    new Set()
+  );
+
+  function toggleExpanded(index: number) {
+    setExpandedIndices((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-xl bg-surface-card p-4 shadow-soft-card md:p-6">
+      <div className="rounded-xl bg-progression-bg p-4 shadow-soft-card md:p-6">
         <h2 className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
-          Summary
+          Progression
         </h2>
-        <p className="mt-2 text-[15px] leading-relaxed text-on-surface">
+        <p className="mt-1 text-2xl font-extrabold text-on-surface md:text-[28px]">
+          Stage {result.stages_reached.length} of {STAGES.length} reached
+        </p>
+        <div className="mt-3 flex gap-1">
+          {STAGES.map((stage) => (
+            <div
+              key={stage}
+              className={`h-2 flex-1 rounded-full ${
+                reached.has(stage) ? STAGE_ACCENT[stage].bar : "bg-outline-variant"
+              }`}
+            />
+          ))}
+        </div>
+        <p className="mt-4 text-[15px] leading-relaxed text-on-surface">
           {result.summary}
         </p>
+      </div>
+
+      <div className="rounded-xl bg-surface-card p-4 shadow-soft-card md:p-6">
+        <h2 className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+          Participants
+        </h2>
+
+        {result.conclusion.person_of_interest_summary && (
+          <>
+            <p className="mt-3 mb-2 text-[11px] font-bold uppercase tracking-wide text-on-surface-variant">
+              Person of interest
+            </p>
+            <ParticipantRow
+              participant={result.conclusion.person_of_interest_summary}
+              highlight
+            />
+          </>
+        )}
+
+        <p className="mt-4 mb-2 text-[11px] font-bold uppercase tracking-wide text-on-surface-variant">
+          All participants
+        </p>
+        <div className="flex flex-col gap-2">
+          {result.conclusion.participants.map((participant) => (
+            <ParticipantRow
+              key={participant.speaker}
+              participant={participant}
+              highlight={false}
+            />
+          ))}
+        </div>
       </div>
 
       <ol className="flex flex-col gap-4">
@@ -105,12 +216,38 @@ export function StageTimeline({ result }: StageTimelineProps) {
                           className="rounded-lg bg-background p-3 text-sm"
                         >
                           <div className="flex items-center justify-between text-xs font-medium text-on-surface-variant">
-                            <span>message #{segment.message_index}</span>
+                            <button
+                              type="button"
+                              onClick={() => toggleExpanded(segment.message_index)}
+                              aria-expanded={expandedIndices.has(segment.message_index)}
+                              className="text-left font-bold text-primary underline decoration-dotted underline-offset-2"
+                            >
+                              message #{segment.message_index}{" "}
+                              {expandedIndices.has(segment.message_index) ? "▾" : "▸"}
+                            </button>
                             <span>
                               confidence {Math.round(segment.confidence * 100)}%
                             </span>
                           </div>
                           <p className="mt-1 text-on-surface">{segment.rationale}</p>
+                          {expandedIndices.has(segment.message_index) && (
+                            <div
+                              className={`mt-2 rounded-lg border-l-4 bg-surface-card p-2 text-xs text-on-surface ${accent.icon}`}
+                            >
+                              {messagesByIndex.has(segment.message_index) ? (
+                                <>
+                                  <span className="font-bold">
+                                    {messagesByIndex.get(segment.message_index)!.speaker}:
+                                  </span>{" "}
+                                  {messagesByIndex.get(segment.message_index)!.message}
+                                </>
+                              ) : (
+                                <span className="italic text-on-surface-variant">
+                                  Original message unavailable.
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </li>
                       ))}
                     </ul>
