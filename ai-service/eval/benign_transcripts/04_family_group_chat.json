@@ -1,0 +1,9 @@
+{
+  "transcript": [
+    {"speaker": "A", "message": "grandma's coming over for dinner sunday, you excited", "timestamp": "2026-07-16T09:00:00Z"},
+    {"speaker": "B", "message": "yes!! is she bringing the cookies again", "timestamp": "2026-07-16T09:00:20Z"},
+    {"speaker": "A", "message": "probably, dad already asked her to", "timestamp": "2026-07-16T09:00:45Z"},
+    {"speaker": "B", "message": "can i invite my cousin too", "timestamp": "2026-07-16T09:01:10Z"},
+    {"speaker": "A", "message": "sure, ask your mom to text his mom", "timestamp": "2026-07-16T09:01:30Z"}
+  ]
+}

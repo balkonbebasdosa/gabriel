@@ -12,6 +12,7 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+*.egg-info/
 
 # Java / Spring
 target/
@@ -21,6 +22,16 @@ target/
 .env
 .env.local
 .env.*.local
+*.env
+!*.env.example
 
-# OS
+# Datasets (never commit raw PAN12 corpus)
+ai-service/test/
+ai-service/train/
+ai-service/eval/report/
+
+# OS / editor
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/

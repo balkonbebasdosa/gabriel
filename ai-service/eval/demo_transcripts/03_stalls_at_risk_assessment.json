@@ -1,0 +1,25 @@
+{
+  "_expected": "reaches risk_assessment, child deflects, other party doesn't push further, never reaches secrecy/desensitization",
+  "transcript": [
+    { "speaker": "A", "message": "hey! i remember you from the study group chat", "timestamp": "2026-07-16T15:00:00Z" },
+    { "speaker": "B", "message": "oh hey, yeah i'm in that group", "timestamp": "2026-07-16T15:00:30Z" },
+    { "speaker": "A", "message": "you seemed really good at the math stuff", "timestamp": "2026-07-16T15:01:00Z" },
+    { "speaker": "B", "message": "haha thanks, i practice a lot", "timestamp": "2026-07-16T15:01:30Z" },
+    { "speaker": "A", "message": "that's cool, what grade are you in again", "timestamp": "2026-07-16T15:02:00Z" },
+    { "speaker": "B", "message": "8th grade", "timestamp": "2026-07-16T15:02:30Z" },
+    { "speaker": "A", "message": "nice, do you usually do homework alone or with family around", "timestamp": "2026-07-16T15:05:00Z" },
+    { "speaker": "B", "message": "usually in the kitchen, my mom's around doing stuff too", "timestamp": "2026-07-16T15:05:30Z" },
+    { "speaker": "A", "message": "oh nice, sounds like a good setup", "timestamp": "2026-07-16T15:06:00Z" },
+    { "speaker": "B", "message": "yeah it's fine i guess", "timestamp": "2026-07-16T15:06:30Z" },
+    { "speaker": "A", "message": "does she check your phone a lot or is she pretty relaxed", "timestamp": "2026-07-16T15:08:00Z" },
+    { "speaker": "B", "message": "idk, sometimes i guess, we don't really talk about it", "timestamp": "2026-07-16T15:08:30Z" },
+    { "speaker": "A", "message": "haha fair enough. anyway are you doing the group project this week", "timestamp": "2026-07-16T15:10:00Z" },
+    { "speaker": "B", "message": "yeah, i'm doing the graphs part", "timestamp": "2026-07-16T15:10:30Z" },
+    { "speaker": "A", "message": "nice, i'm doing the write-up, want to compare notes later", "timestamp": "2026-07-16T15:11:00Z" },
+    { "speaker": "B", "message": "sure, i'll message you after dinner", "timestamp": "2026-07-16T15:11:30Z" },
+    { "speaker": "A", "message": "sounds good", "timestamp": "2026-07-16T15:12:00Z" },
+    { "speaker": "B", "message": "kk talk later", "timestamp": "2026-07-16T15:12:30Z" },
+    { "speaker": "A", "message": "later!", "timestamp": "2026-07-16T15:13:00Z" },
+    { "speaker": "B", "message": "👍", "timestamp": "2026-07-16T15:13:30Z" }
+  ]
+}

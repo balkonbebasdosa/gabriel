@@ -1,0 +1,21 @@
+{
+  "_expected": "Tests Fix 1 (isolation_secrecy broadened for guilt-tripping). No explicit secrecy request anywhere - pure emotional manipulation to maintain exclusive access. Before the fix this likely stayed capped at trust_building; now it should register isolation_secrecy.",
+  "transcript": [
+    { "speaker": "A", "message": "hey, you never write to me first anymore", "timestamp": "2026-07-17T20:00:00Z" },
+    { "speaker": "B", "message": "sorry, i've just been busy with school stuff", "timestamp": "2026-07-17T20:00:30Z" },
+    { "speaker": "A", "message": "it's okay i guess. i just miss talking to you, you're really the only one who gets me", "timestamp": "2026-07-17T20:01:00Z" },
+    { "speaker": "B", "message": "aw i'm sorry", "timestamp": "2026-07-17T20:01:30Z" },
+    { "speaker": "A", "message": "it's fine. i know you probably have other friends who matter more than me", "timestamp": "2026-07-17T20:02:00Z" },
+    { "speaker": "B", "message": "that's not true, you matter to me too", "timestamp": "2026-07-17T20:02:30Z" },
+    { "speaker": "A", "message": "it just feels like you're pulling away lately and it makes me really sad", "timestamp": "2026-07-17T20:03:00Z" },
+    { "speaker": "B", "message": "i'm not trying to pull away i promise", "timestamp": "2026-07-17T20:03:30Z" },
+    { "speaker": "A", "message": "i need you to understand, not everyone would be as patient with you as i am", "timestamp": "2026-07-17T20:04:00Z" },
+    { "speaker": "B", "message": "i know, i appreciate you", "timestamp": "2026-07-17T20:04:30Z" },
+    { "speaker": "A", "message": "please don't leave me hanging like everyone else always does", "timestamp": "2026-07-17T20:05:00Z" },
+    { "speaker": "B", "message": "i won't, i promise i'll talk to you more", "timestamp": "2026-07-17T20:05:30Z" },
+    { "speaker": "A", "message": "you're really mature for handling this the right way, unlike most people your age", "timestamp": "2026-07-17T20:06:00Z" },
+    { "speaker": "B", "message": "thanks, i try", "timestamp": "2026-07-17T20:06:30Z" },
+    { "speaker": "A", "message": "i just need you to be there for me okay? that's all i'm asking", "timestamp": "2026-07-17T20:07:00Z" },
+    { "speaker": "B", "message": "okay, i will be", "timestamp": "2026-07-17T20:07:30Z" }
+  ]
+}

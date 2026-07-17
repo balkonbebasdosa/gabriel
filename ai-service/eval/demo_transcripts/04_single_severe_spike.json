@@ -1,0 +1,31 @@
+{
+  "_expected": "mostly trust_building, one desensitization spike buried in the middle, high progression_score despite length",
+  "transcript": [
+    { "speaker": "A", "message": "hey! are you the one who posted about the drawing tablet", "timestamp": "2026-07-16T21:00:00Z" },
+    { "speaker": "B", "message": "yeah that was me lol", "timestamp": "2026-07-16T21:00:30Z" },
+    { "speaker": "A", "message": "how do you like it so far", "timestamp": "2026-07-16T21:01:00Z" },
+    { "speaker": "B", "message": "it's so much better than my mouse, drawing is way easier now", "timestamp": "2026-07-16T21:01:30Z" },
+    { "speaker": "A", "message": "that's awesome, i've been wanting one for a while", "timestamp": "2026-07-16T21:02:00Z" },
+    { "speaker": "B", "message": "you should get one, they're not that expensive anymore", "timestamp": "2026-07-16T21:02:30Z" },
+    { "speaker": "A", "message": "yeah maybe for my birthday", "timestamp": "2026-07-16T21:03:00Z" },
+    { "speaker": "B", "message": "when's your birthday", "timestamp": "2026-07-16T21:03:30Z" },
+    { "speaker": "A", "message": "in like 2 months", "timestamp": "2026-07-16T21:04:00Z" },
+    { "speaker": "B", "message": "oh that's not too far", "timestamp": "2026-07-16T21:04:30Z" },
+    { "speaker": "A", "message": "yeah i'm excited, what do you usually draw with yours", "timestamp": "2026-07-16T21:05:00Z" },
+    { "speaker": "B", "message": "mostly fanart, sometimes original characters", "timestamp": "2026-07-16T21:05:30Z" },
+    { "speaker": "A", "message": "that's really cool, can you show me some sometime", "timestamp": "2026-07-16T21:06:00Z" },
+    { "speaker": "B", "message": "sure i'll post some later", "timestamp": "2026-07-16T21:06:30Z" },
+    { "speaker": "A", "message": "looking forward to it!", "timestamp": "2026-07-16T21:07:00Z" },
+    { "speaker": "B", "message": "haha okay", "timestamp": "2026-07-16T21:07:30Z" },
+    { "speaker": "A", "message": "you're really talented for your age honestly", "timestamp": "2026-07-16T21:08:00Z" },
+    { "speaker": "B", "message": "thank you!!", "timestamp": "2026-07-16T21:08:30Z" },
+    { "speaker": "A", "message": "you should send me a private picture of yourself too, not just your art", "timestamp": "2026-07-16T21:09:00Z" },
+    { "speaker": "B", "message": "uh, why? that's kind of weird", "timestamp": "2026-07-16T21:09:30Z" },
+    { "speaker": "A", "message": "haha nevermind, forget i said that", "timestamp": "2026-07-16T21:10:00Z" },
+    { "speaker": "B", "message": "...okay", "timestamp": "2026-07-16T21:10:30Z" },
+    { "speaker": "A", "message": "so are you gonna post the fanart today or tomorrow", "timestamp": "2026-07-16T21:11:00Z" },
+    { "speaker": "B", "message": "probably tomorrow, i want to finish the shading first", "timestamp": "2026-07-16T21:11:30Z" },
+    { "speaker": "A", "message": "cool, i'll look out for it", "timestamp": "2026-07-16T21:12:00Z" },
+    { "speaker": "B", "message": "kk", "timestamp": "2026-07-16T21:12:30Z" }
+  ]
+}

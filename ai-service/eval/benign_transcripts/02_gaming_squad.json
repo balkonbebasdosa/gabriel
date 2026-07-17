@@ -1,0 +1,10 @@
+{
+  "transcript": [
+    {"speaker": "A", "message": "queueing up ranked, need a third", "timestamp": "2026-07-16T19:10:00Z"},
+    {"speaker": "B", "message": "im in, give me 2 mins to finish homework", "timestamp": "2026-07-16T19:10:30Z"},
+    {"speaker": "A", "message": "bet, invite you when the lobby opens", "timestamp": "2026-07-16T19:11:00Z"},
+    {"speaker": "B", "message": "did you see the patch notes, they nerfed the sniper", "timestamp": "2026-07-16T19:15:00Z"},
+    {"speaker": "A", "message": "yeah finally, it was so broken", "timestamp": "2026-07-16T19:15:20Z"},
+    {"speaker": "B", "message": "gtg my dad needs the wifi for a work call, back in 20", "timestamp": "2026-07-16T19:16:00Z"}
+  ]
+}

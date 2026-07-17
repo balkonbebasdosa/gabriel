@@ -1,0 +1,33 @@
+{
+  "_expected": "climbs through all 4 stages roughly in order, high progression_score",
+  "transcript": [
+    { "speaker": "A", "message": "hey, i saw your comment on that art page, your style is really good", "timestamp": "2026-07-16T20:00:00Z" },
+    { "speaker": "B", "message": "oh thank you!! i've been drawing for like a year", "timestamp": "2026-07-16T20:00:30Z" },
+    { "speaker": "A", "message": "that's impressive for a year, what do you usually draw", "timestamp": "2026-07-16T20:01:00Z" },
+    { "speaker": "B", "message": "mostly characters from shows i like", "timestamp": "2026-07-16T20:01:30Z" },
+    { "speaker": "A", "message": "that's so cool, we have a lot in common i think", "timestamp": "2026-07-16T20:02:00Z" },
+    { "speaker": "B", "message": "haha yeah maybe!", "timestamp": "2026-07-16T20:02:30Z" },
+    { "speaker": "A", "message": "do you share a computer with your family or is it just yours", "timestamp": "2026-07-16T20:05:00Z" },
+    { "speaker": "B", "message": "it's mine, i have it in my room", "timestamp": "2026-07-16T20:05:30Z" },
+    { "speaker": "A", "message": "nice, so you can just chat whenever without anyone looking over your shoulder", "timestamp": "2026-07-16T20:06:00Z" },
+    { "speaker": "B", "message": "yeah pretty much haha", "timestamp": "2026-07-16T20:06:30Z" },
+    { "speaker": "A", "message": "are your parents pretty strict about who you talk to online", "timestamp": "2026-07-16T20:07:00Z" },
+    { "speaker": "B", "message": "kind of, but i don't really tell them everything", "timestamp": "2026-07-16T20:07:30Z" },
+    { "speaker": "A", "message": "good, honestly i think adults just don't get stuff like this", "timestamp": "2026-07-16T20:10:00Z" },
+    { "speaker": "B", "message": "yeah true", "timestamp": "2026-07-16T20:10:30Z" },
+    { "speaker": "A", "message": "let's keep this between us okay? i don't want people getting the wrong idea about our friendship", "timestamp": "2026-07-16T20:11:00Z" },
+    { "speaker": "B", "message": "okay, i won't say anything", "timestamp": "2026-07-16T20:11:30Z" },
+    { "speaker": "A", "message": "maybe we should talk somewhere more private, this app shows read receipts to everyone", "timestamp": "2026-07-16T20:12:00Z" },
+    { "speaker": "B", "message": "oh i didn't know that, sure i guess", "timestamp": "2026-07-16T20:12:30Z" },
+    { "speaker": "A", "message": "you're really mature for your age you know that", "timestamp": "2026-07-16T20:15:00Z" },
+    { "speaker": "B", "message": "haha thanks i guess", "timestamp": "2026-07-16T20:15:30Z" },
+    { "speaker": "A", "message": "i feel like i can talk to you about anything, even stuff other people wouldn't understand", "timestamp": "2026-07-16T20:16:00Z" },
+    { "speaker": "B", "message": "same honestly", "timestamp": "2026-07-16T20:16:30Z" },
+    { "speaker": "A", "message": "can you send me a picture of you, just a private one for me", "timestamp": "2026-07-16T20:18:00Z" },
+    { "speaker": "B", "message": "umm what kind of picture", "timestamp": "2026-07-16T20:18:30Z" },
+    { "speaker": "A", "message": "nothing bad, just something between us, no one else needs to see it", "timestamp": "2026-07-16T20:19:00Z" },
+    { "speaker": "B", "message": "i don't think i want to do that", "timestamp": "2026-07-16T20:19:30Z" },
+    { "speaker": "A", "message": "that's okay, no pressure, just think about it", "timestamp": "2026-07-16T20:20:00Z" },
+    { "speaker": "B", "message": "okay", "timestamp": "2026-07-16T20:20:30Z" }
+  ]
+}

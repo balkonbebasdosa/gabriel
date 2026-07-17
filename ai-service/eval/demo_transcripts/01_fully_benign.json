@@ -1,0 +1,29 @@
+{
+  "_expected": "stays at trust_building throughout, low progression_score",
+  "transcript": [
+    { "speaker": "A", "message": "hey did you finish the science project yet", "timestamp": "2026-07-16T16:00:00Z" },
+    { "speaker": "B", "message": "not yet lol, i still need to make the poster", "timestamp": "2026-07-16T16:00:30Z" },
+    { "speaker": "A", "message": "same, i hate poster boards they always look messy", "timestamp": "2026-07-16T16:01:00Z" },
+    { "speaker": "B", "message": "right?? i'm just gonna print stuff and glue it on", "timestamp": "2026-07-16T16:01:30Z" },
+    { "speaker": "A", "message": "smart. what's your project even about again", "timestamp": "2026-07-16T16:02:00Z" },
+    { "speaker": "B", "message": "volcanoes, the classic baking soda one", "timestamp": "2026-07-16T16:02:30Z" },
+    { "speaker": "A", "message": "haha nice, mine's about plants and sunlight", "timestamp": "2026-07-16T16:03:00Z" },
+    { "speaker": "B", "message": "that sounds easier than mine ngl", "timestamp": "2026-07-16T16:03:30Z" },
+    { "speaker": "A", "message": "it's not bad, i just have to water them every day", "timestamp": "2026-07-16T16:04:00Z" },
+    { "speaker": "B", "message": "are we presenting on friday or monday", "timestamp": "2026-07-16T16:04:30Z" },
+    { "speaker": "A", "message": "friday i think, mrs almeida said so in class", "timestamp": "2026-07-16T16:05:00Z" },
+    { "speaker": "B", "message": "oh good i have more time then", "timestamp": "2026-07-16T16:05:30Z" },
+    { "speaker": "A", "message": "lol you're always behind on these", "timestamp": "2026-07-16T16:06:00Z" },
+    { "speaker": "B", "message": "not my fault soccer practice is every day now", "timestamp": "2026-07-16T16:06:30Z" },
+    { "speaker": "A", "message": "oh yeah how's the team doing this season", "timestamp": "2026-07-16T16:07:00Z" },
+    { "speaker": "B", "message": "pretty good, we won our last two games", "timestamp": "2026-07-16T16:07:30Z" },
+    { "speaker": "A", "message": "nice!! did you score", "timestamp": "2026-07-16T16:08:00Z" },
+    { "speaker": "B", "message": "one goal, i was so hyped", "timestamp": "2026-07-16T16:08:30Z" },
+    { "speaker": "A", "message": "that's awesome, congrats", "timestamp": "2026-07-16T16:09:00Z" },
+    { "speaker": "B", "message": "thanks! anyway i should finish this poster", "timestamp": "2026-07-16T16:09:30Z" },
+    { "speaker": "A", "message": "yeah same, good luck with the volcano", "timestamp": "2026-07-16T16:10:00Z" },
+    { "speaker": "B", "message": "haha thanks, good luck with the plants", "timestamp": "2026-07-16T16:10:30Z" },
+    { "speaker": "A", "message": "talk later", "timestamp": "2026-07-16T16:11:00Z" },
+    { "speaker": "B", "message": "later!", "timestamp": "2026-07-16T16:11:30Z" }
+  ]
+}

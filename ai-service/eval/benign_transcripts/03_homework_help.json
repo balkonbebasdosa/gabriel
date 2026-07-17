@@ -1,0 +1,10 @@
+{
+  "transcript": [
+    {"speaker": "A", "message": "do you get question 4 on the worksheet", "timestamp": "2026-07-16T17:00:00Z"},
+    {"speaker": "B", "message": "no clue, it's about photosynthesis right", "timestamp": "2026-07-16T17:00:30Z"},
+    {"speaker": "A", "message": "yeah i think the answer is chlorophyll absorbs light energy", "timestamp": "2026-07-16T17:01:00Z"},
+    {"speaker": "B", "message": "oh that makes sense, thanks!", "timestamp": "2026-07-16T17:01:20Z"},
+    {"speaker": "A", "message": "np, are you going to the study group thing at the library saturday", "timestamp": "2026-07-16T17:02:00Z"},
+    {"speaker": "B", "message": "yeah my mom's dropping me off at 10", "timestamp": "2026-07-16T17:02:30Z"}
+  ]
+}

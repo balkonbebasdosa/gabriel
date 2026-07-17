@@ -1,0 +1,9 @@
+{
+  "transcript": [
+    {"speaker": "A", "message": "coach moved practice to 4:30 tomorrow", "timestamp": "2026-07-16T20:00:00Z"},
+    {"speaker": "B", "message": "ok, my sister can drop me off after her class", "timestamp": "2026-07-16T20:00:30Z"},
+    {"speaker": "A", "message": "cool, bring the extra jerseys if you still have them", "timestamp": "2026-07-16T20:01:00Z"},
+    {"speaker": "B", "message": "will do, are we doing the scrimmage against the other school again", "timestamp": "2026-07-16T20:01:30Z"},
+    {"speaker": "A", "message": "yeah next friday, whole team's parents are coming to watch", "timestamp": "2026-07-16T20:02:00Z"}
+  ]
+}
