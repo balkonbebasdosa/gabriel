@@ -33,6 +33,24 @@ export interface AnalysisSegment {
   rationale: string;
 }
 
+export type ParticipantRole =
+  | "target_victim"
+  | "active_participant"
+  | "bystander"
+  | "mediator"
+  | "unclear";
+
+export interface Participant {
+  speaker: Speaker;
+  role: ParticipantRole;
+  behavior_summary: string;
+}
+
+export interface Conclusion {
+  participants: Participant[];
+  person_of_interest_summary: Participant | null;
+}
+
 export interface AnalysisResult {
   id?: string;
   transcript_id?: string;
@@ -41,6 +59,7 @@ export interface AnalysisResult {
   progression_score: number;
   stages_reached: Stage[];
   summary: string;
+  conclusion: Conclusion;
 }
 
 export interface TranscriptCreatedResponse {

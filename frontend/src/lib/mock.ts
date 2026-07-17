@@ -30,4 +30,21 @@ export const MOCK_ANALYSIS_RESULT: AnalysisResult = {
   stages_reached: ["trust_building", "risk_assessment", "isolation_secrecy"],
   summary:
     "conversation escalated from rapport-building to a request for secrecy; no desensitization stage detected yet",
+  conclusion: {
+    participants: [
+      {
+        speaker: "A",
+        role: "active_participant",
+        behavior_summary:
+          "mock behavior summary — stub response for local development, not a real behavior assessment",
+      },
+      {
+        speaker: "B",
+        role: "unclear",
+        behavior_summary:
+          "mock behavior summary — stub response for local development, not a real behavior assessment",
+      },
+    ],
+    person_of_interest_summary: null,
+  },
 };
