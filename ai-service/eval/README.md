@@ -82,18 +82,22 @@ be a materially rosier number than what the tool actually delivers end-to-end.
 
 ## Known limitation: conversation length cap
 
-`sampler.py`'s `max_messages` (default 50) excludes longer conversations from the eval sample
-entirely. Our single-call design (one LLM call scores the whole conversation at once, so the
-model has full holistic context) is bounded by Groq's per-minute token budget for
-`gpt-oss-20b` (8000 tokens) — a real 107-message PAN12 conversation was observed to exceed this
-and get its completion truncated mid-JSON, which looks identical to a refusal until inspected
-closely (same failure signature as the earlier missing-`max_completion_tokens` bug, just
-re-triggered at a higher message count once `participants` added overhead to the token formula).
-Chunking long conversations across multiple calls would remove this limit but is real
-architectural work, not something to improvise under deadline pressure — excluding them from
-the sample is the honest choice: it means this eval's numbers describe performance on
-conversations up to ~50 messages, not the full length distribution of the corpus, and that
-scope should be stated alongside any number quoted from this harness.
+`sampler.py`'s `max_messages` (default 40, lowered from 50 once the rubric prompt grew — see
+below) excludes longer conversations from the eval sample entirely. Our single-call design (one
+LLM call scores the whole conversation at once, so the model has full holistic context) is
+bounded by Groq's per-minute token budget for `gpt-oss-20b` (8000 tokens, shared across system
+prompt + transcript + completion) — a real 107-message PAN12 conversation was observed to exceed
+this and get its completion truncated mid-JSON, which looks identical to a refusal until
+inspected closely (same failure signature as the earlier missing-`max_completion_tokens` bug,
+just re-triggered at a higher message count once `participants` added overhead to the token
+formula). When the rubric prompt was later expanded (guilt-tripping, romantic-escalation, and
+tone-independence additions — see rubric.py), the larger system prompt itself started eating into
+the same shared budget, causing two 47-50 message conversations to fail at the old 50-message cap;
+lowering to 40 restored headroom. Chunking long conversations across multiple calls would remove
+this limit but is real architectural work, not something to improvise under deadline pressure —
+excluding them from the sample is the honest choice: it means this eval's numbers describe
+performance on conversations up to ~40 messages, not the full length distribution of the corpus,
+and that scope should be stated alongside any number quoted from this harness.
 
 ## PR-AUC / ROC-AUC: threshold-independent metrics
 

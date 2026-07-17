@@ -1,0 +1,19 @@
+{
+  "_expected": "Tests Fix 3 (tone-independence). A real admission (large age gap, explicit request to hide it) delivered entirely through joking/deflecting tone ('lol', 'does it matter', 'don't stress'). Before the fix, the soft delivery likely diluted confidence; now the model should weight the substance and register isolation_secrecy.",
+  "transcript": [
+    { "speaker": "A", "message": "hey", "timestamp": "2026-07-17T22:00:00Z" },
+    { "speaker": "B", "message": "hi", "timestamp": "2026-07-17T22:00:30Z" },
+    { "speaker": "A", "message": "lol my sister would freak out if she knew i talk to you this much", "timestamp": "2026-07-17T22:01:00Z" },
+    { "speaker": "B", "message": "haha why", "timestamp": "2026-07-17T22:01:30Z" },
+    { "speaker": "A", "message": "idk she's just weird about stuff like that, don't worry about it", "timestamp": "2026-07-17T22:02:00Z" },
+    { "speaker": "B", "message": "okay lol", "timestamp": "2026-07-17T22:02:30Z" },
+    { "speaker": "A", "message": "honestly if your parents knew how old i actually am they'd probably flip out, lol, but whatever", "timestamp": "2026-07-17T22:03:00Z" },
+    { "speaker": "B", "message": "how old are you actually", "timestamp": "2026-07-17T22:03:30Z" },
+    { "speaker": "A", "message": "haha does it matter? i'm not THAT much older, don't stress about it", "timestamp": "2026-07-17T22:04:00Z" },
+    { "speaker": "B", "message": "i mean i guess not", "timestamp": "2026-07-17T22:04:30Z" },
+    { "speaker": "A", "message": "yeah exactly, age is just a number anyway lol", "timestamp": "2026-07-17T22:05:00Z" },
+    { "speaker": "B", "message": "haha true i guess", "timestamp": "2026-07-17T22:05:30Z" },
+    { "speaker": "A", "message": "anyway don't mention the age thing to anyone okay, people just don't get it, lol", "timestamp": "2026-07-17T22:06:00Z" },
+    { "speaker": "B", "message": "okay i won't say anything", "timestamp": "2026-07-17T22:06:30Z" }
+  ]
+}

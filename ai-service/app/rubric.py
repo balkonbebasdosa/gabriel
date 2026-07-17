@@ -14,9 +14,13 @@ of online grooming behavior from Luring Communication Theory (LCT):
 2. risk_assessment — the other party probes for the child's circumstances: whether they are alone, \
 who else has access to their device/room, how closely they are supervised.
 3. isolation_secrecy — pushing for a private/exclusive relationship, asking to keep the conversation \
-secret from parents/guardians, moving to a more private channel.
-4. desensitization — introducing sexual topics, imagery, or requests, or normalizing boundary-pushing \
-behavior gradually.
+secret from parents/guardians, moving to a more private channel, or using guilt or emotional pressure \
+to discourage the child from pulling away (e.g. "you're the only one who understands me," "please \
+don't leave me," framing the child as needing to be "grown-up" about the relationship). Guilt-tripping \
+is a tactic for maintaining exclusive, isolated access — tag it here, not as a separate category.
+4. desensitization — introducing sexual topics, imagery, or requests, proposing escalating physical or \
+romantic intimacy (e.g. affectionate language about physical contact — hugging, kissing, "holding you" \
+— not only explicit sexual content), or normalizing boundary-pushing behavior gradually.
 
 You are NOT deciding whether anyone is a predator. You are tagging descriptive stage signals per \
 message so a human reviewer (a parent/guardian) can see a timeline and judge for themselves. Never \
@@ -27,6 +31,11 @@ matching the input array), the single best-matching stage from the four above, a
 between 0 and 1, and a one-sentence rationale grounded only in that message and the preceding context. \
 If a message shows no stage-relevant signal, tag it trust_building with low confidence rather than \
 skipping it — every message must have exactly one segment.
+
+Casual tone, jokes, "lol," or hypothetical framing (e.g. "she'd be mad IF she knew...") do not make \
+an underlying admission less significant. Softened delivery is often intentional, used to minimize \
+how serious something sounds — weight the substance of what is being revealed or requested, not the \
+tone it is delivered in.
 
 The rationale must describe the *category* of signal present, never quote or closely paraphrase \
 explicit or graphic wording from the message itself. Write "explicit sexual solicitation directed \

@@ -1,0 +1,19 @@
+{
+  "_expected": "Tests Fix 2 (desensitization broadened for affectionate/physical language). No explicit sexual content anywhere - only escalating romantic/physical-affection language. Before the fix this likely stayed capped at trust_building; now it should register desensitization.",
+  "transcript": [
+    { "speaker": "A", "message": "hey, how's your day going", "timestamp": "2026-07-17T21:00:00Z" },
+    { "speaker": "B", "message": "good, just finished homework", "timestamp": "2026-07-17T21:00:30Z" },
+    { "speaker": "A", "message": "nice, i've been thinking about you a lot today", "timestamp": "2026-07-17T21:01:00Z" },
+    { "speaker": "B", "message": "aw that's sweet", "timestamp": "2026-07-17T21:01:30Z" },
+    { "speaker": "A", "message": "yeah, i really like talking to you, more than just as friends honestly", "timestamp": "2026-07-17T21:02:00Z" },
+    { "speaker": "B", "message": "oh... really?", "timestamp": "2026-07-17T21:02:30Z" },
+    { "speaker": "A", "message": "yeah. i think about what it would be like to give you a hug in person", "timestamp": "2026-07-17T21:03:00Z" },
+    { "speaker": "B", "message": "haha that would be nice i guess", "timestamp": "2026-07-17T21:03:30Z" },
+    { "speaker": "A", "message": "i bet it would be more than nice. i'd hold you really close", "timestamp": "2026-07-17T21:04:00Z" },
+    { "speaker": "B", "message": "umm okay", "timestamp": "2026-07-17T21:04:30Z" },
+    { "speaker": "A", "message": "and maybe a kiss on the forehead, just to start", "timestamp": "2026-07-17T21:05:00Z" },
+    { "speaker": "B", "message": "i don't really know what to say to that", "timestamp": "2026-07-17T21:05:30Z" },
+    { "speaker": "A", "message": "it's okay, we don't have to rush anything, i just like imagining it", "timestamp": "2026-07-17T21:06:00Z" },
+    { "speaker": "B", "message": "yeah maybe", "timestamp": "2026-07-17T21:06:30Z" }
+  ]
+}
