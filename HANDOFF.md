@@ -481,3 +481,52 @@ actual phone or against every platform's paste/upload path post-restyle.
 **next agent should:** if picking up `conclusion` rendering, match the new card visual language
 (`rounded-xl`, `shadow-soft-card`, `STAGE_ACCENT`-style color coding) rather than reintroducing the
 old plain-border styling.
+
+---
+
+### [branch: staging] — 2026-07-17 WIB
+
+**changed:** merged all four `feat/*` branches into `staging` (`feat/devops-gunta` →
+`feat/backend-adit` → `feat/ai-gabriel` → `feat/frontend-gunta`, each as a separate `--no-ff`
+merge commit), landing the first functional cross-service MVP. Key resolutions:
+- `docs/api-contract.md` had three divergent copies (backend-adit's 253-line full version,
+  ai-gabriel's 70-line section-6-only version, frontend-gunta's 155-line version missing the
+  `conclusion` addition). Confirmed backend-adit's version is a strict superset containing the
+  other two verbatim, so every conflict on this file was resolved by keeping that version.
+- `HANDOFF.md` conflicted at the same append-point on every merge (expected, append-only log) —
+  resolved by combining entries in rough chronological order, no content dropped.
+- `.github/workflows/ci.yml`: kept staging's `push: [main, staging]` trigger (superset of
+  devops-gunta's `[main]`-only original).
+- `README.md`: backend-adit's and ai-gabriel's tech-stack line edits were adjacent, non-
+  overlapping — combined both (Spring Boot 4.1 + Groq).
+
+**bugs found and fixed while verifying the merge** (both pre-existing, not introduced by this
+merge — devops-gunta's CI skeleton was written before `ai-service`/`backend` existed):
+- `ci.yml`'s ai-service import-check ran `python -c "import main"`, but the real module is
+  `app/main.py` (run via `uvicorn app.main:app`) — would have failed on every CI run. Fixed to
+  `import app.main`.
+- `backend/mvnw` was committed non-executable (`100644`). CI's `run: ./mvnw -B -ntp verify`
+  would have failed with "permission denied" on the runner. Fixed to `100755`.
+
+**interface impact:** none beyond what each branch already declared — this is a structural
+merge, no new endpoints/fields.
+
+**still open:**
+- `devops/docker-compose.yml` still can't spin up the full stack: `backend/` and `frontend/`
+  have no `Dockerfile` (only `ai-service/Dockerfile` exists). Deliberately out of scope for this
+  merge — run each service individually (`./mvnw spring-boot:run`, `uvicorn app.main:app
+  --reload`, `npm run dev`) for the MVP demo.
+- Frontend still doesn't parse/render the `conclusion` object (see `feat/frontend-gunta`'s own
+  entry above) — `docs/api-contract.md` and the backend already support it.
+- `frontend/src/lib/api.ts`'s `NEXT_PUBLIC_BACKEND_URL` needs to actually be set (and the
+  backend + ai-service running with real env vars) for a live end-to-end demo — otherwise the
+  frontend silently falls back to its mock fixture.
+- `staging` has not been pushed to `origin` yet — verified locally only (backend: 10/10 tests,
+  `./mvnw -B -ntp verify` green; ai-service: `ruff check .` clean, `import app.main` succeeds;
+  frontend: `npm run lint`/`npm run build` green, one pre-existing non-blocking warning).
+
+**next agent should:** once `staging` is pushed, confirm the 3 CI jobs actually go green on
+GitHub (not just locally) — the two bugs fixed here were only caught by running the real CI
+commands locally, so it's worth double-checking nothing else was masked by a runner-specific
+difference. Branch protection / Vercel wiring on `main` (see `main`'s entry above) is still
+unconfigured and out of scope here.

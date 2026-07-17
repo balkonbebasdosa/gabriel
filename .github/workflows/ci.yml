@@ -50,7 +50,7 @@ jobs:
       - name: Import check
         if: steps.check.outputs.exists == 'true'
         working-directory: ai-service
-        run: python -c "import main"
+        run: python -c "import app.main"
 
   frontend:
     name: frontend (lint + build)
