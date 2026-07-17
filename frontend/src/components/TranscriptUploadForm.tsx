@@ -99,7 +99,7 @@ export function TranscriptUploadForm({
       <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
         {/* Main input column */}
         <div className="flex flex-col gap-6 md:col-span-8">
-          <div className="rounded-xl bg-surface-card p-4 shadow-soft-card md:p-6">
+          <div className="rounded-xl bg-progression-bg p-4 shadow-soft-card md:p-6">
             <label
               htmlFor="platform"
               className="mb-2 ml-1 block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant"
@@ -170,7 +170,7 @@ export function TranscriptUploadForm({
           </div>
 
           {speakers.length > 0 && (
-            <div className="rounded-xl bg-surface-card p-4 shadow-soft-card md:p-6">
+            <div className="rounded-xl bg-poi-bg p-4 shadow-soft-card md:p-6">
               <label
                 htmlFor="poi"
                 className="mb-2 ml-1 block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant"
@@ -209,8 +209,8 @@ export function TranscriptUploadForm({
               htmlFor="transcript-file"
               className="group flex flex-1 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/20 p-6 text-center transition-all hover:border-primary/40 hover:bg-primary/5"
             >
-              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 transition-transform group-hover:scale-105">
-                <span className="material-symbols-outlined text-[28px] text-primary">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-secondary-container transition-transform group-hover:scale-105">
+                <span className="material-symbols-outlined text-[28px] text-on-secondary">
                   cloud_upload
                 </span>
               </div>
