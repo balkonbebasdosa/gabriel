@@ -1,12 +1,73 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 
 const NAV_ITEMS = [
-  { label: "Analysis", active: true },
-  { label: "History", active: false },
-  { label: "Settings", active: false },
+  { label: "Analysis", href: "/" },
+  { label: "History", href: "/history" },
+  { label: "Settings", href: null },
 ];
 
+function isActive(pathname: string, href: string): boolean {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function AccountMenu() {
+  const { email, logout } = useAuth();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+
+  function handleLogout() {
+    logout();
+    setOpen(false);
+    router.replace("/login");
+  }
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        aria-label="Account menu"
+        aria-expanded={open}
+        className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-container"
+      >
+        <span className="material-symbols-outlined text-primary">person</span>
+      </button>
+
+      {open && (
+        <>
+          <button
+            type="button"
+            aria-label="Close account menu"
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-40 cursor-default"
+          />
+          <div className="absolute right-0 z-50 mt-2 w-56 rounded-xl bg-surface-card p-3 shadow-soft-card">
+            {email && (
+              <p className="truncate px-2 pb-2 text-xs text-on-surface-variant">{email}</p>
+            )}
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-full rounded-lg px-2 py-2 text-left text-sm font-bold text-on-surface transition-colors hover:bg-surface-container"
+            >
+              Log out
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export function Header() {
+  const pathname = usePathname();
+
   return (
     <>
       {/* Desktop / wide-screen airy header */}
@@ -18,11 +79,15 @@ export function Header() {
             </span>
             <div className="ml-6 flex gap-10">
               {NAV_ITEMS.map((item) =>
-                item.active ? (
+                item.href ? (
                   <Link
                     key={item.label}
-                    href="/"
-                    className="rounded-full bg-primary-container px-4 py-2 text-sm font-bold text-on-primary-container"
+                    href={item.href}
+                    className={
+                      isActive(pathname, item.href)
+                        ? "rounded-full bg-primary-container px-4 py-2 text-sm font-bold text-on-primary-container"
+                        : "pb-1 text-sm font-semibold text-on-surface-variant transition-colors hover:text-on-surface"
+                    }
                   >
                     {item.label}
                   </Link>
@@ -46,9 +111,7 @@ export function Header() {
             >
               <span className="material-symbols-outlined">notifications</span>
             </button>
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-container">
-              <span className="material-symbols-outlined text-primary">person</span>
-            </div>
+            <AccountMenu />
           </div>
         </nav>
       </header>
@@ -68,9 +131,7 @@ export function Header() {
             Gabriel
           </span>
         </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-container">
-          <span className="material-symbols-outlined text-primary">person</span>
-        </div>
+        <AccountMenu />
       </header>
     </>
   );

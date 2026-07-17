@@ -67,3 +67,16 @@ export interface TranscriptCreatedResponse {
   created_at: string;
   message_count: number;
 }
+
+export interface TranscriptDetailResponse {
+  id: string;
+  created_at: string;
+  messages: TranscriptMessage[];
+  latest_analysis: AnalysisResult | null;
+}
+
+export interface AuthResponse {
+  user_id: string;
+  email: string;
+  token: string;
+}

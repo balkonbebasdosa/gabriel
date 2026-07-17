@@ -1,26 +1,42 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
-  { label: "Analysis", icon: "insights", active: true },
-  { label: "History", icon: "history", active: false },
-  { label: "Settings", icon: "settings", active: false },
+  { label: "Analysis", icon: "insights", href: "/" },
+  { label: "History", icon: "history", href: "/history" },
+  { label: "Settings", icon: "settings", href: null },
 ];
 
+function isActive(pathname: string, href: string): boolean {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export function BottomNav() {
+  const pathname = usePathname();
+
   return (
     <div className="fixed inset-x-4 bottom-6 z-50 md:hidden">
       <nav className="flex items-center justify-around rounded-full border border-white/20 bg-white/95 py-3 shadow-playful-button backdrop-blur-xl">
         {NAV_ITEMS.map((item) =>
-          item.active ? (
+          item.href ? (
             <Link
               key={item.label}
-              href="/"
-              className="flex flex-col items-center justify-center text-primary"
+              href={item.href}
+              className={`flex flex-col items-center justify-center ${
+                isActive(pathname, item.href) ? "text-primary" : "text-on-surface-variant"
+              }`}
             >
-              <div className="mb-0.5 flex h-10 w-12 items-center justify-center rounded-full bg-primary-container">
+              <div
+                className={`mb-0.5 flex h-10 w-12 items-center justify-center rounded-full ${
+                  isActive(pathname, item.href) ? "bg-primary-container" : ""
+                }`}
+              >
                 <span
                   className="material-symbols-outlined"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
+                  style={{ fontVariationSettings: isActive(pathname, item.href) ? "'FILL' 1" : "'FILL' 0" }}
                 >
                   {item.icon}
                 </span>

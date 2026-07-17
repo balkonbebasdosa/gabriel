@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Courier_Prime } from "next/font/google";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
+import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -39,9 +40,11 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col font-sans">
-        <Header />
-        {children}
-        <BottomNav />
+        <AuthProvider>
+          <Header />
+          {children}
+          <BottomNav />
+        </AuthProvider>
       </body>
     </html>
   );
