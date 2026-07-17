@@ -22,7 +22,7 @@ export function Header() {
                   <Link
                     key={item.label}
                     href="/"
-                    className="border-b-4 border-primary pb-1 text-sm font-semibold text-primary"
+                    className="rounded-full bg-primary-container px-4 py-2 text-sm font-bold text-on-primary-container"
                   >
                     {item.label}
                   </Link>
