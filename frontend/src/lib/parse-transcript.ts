@@ -125,31 +125,106 @@ function parseGeneric(raw: string): TranscriptMessage[] {
   });
 }
 
-// Matches both "16/07/2026, 14:02 - Mom: text" (Android) and
-// "[16/07/2026, 14:02:03] Mom: text" (iOS) export styles.
-const WHATSAPP_LINE =
-  /^\[?(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?(?:\s?[AaPp][Mm])?)\]?\s*-?\s*([^:]+):\s(.*)$/;
+// Android export: "DD/MM/YYYY, HH:MM - Sender: Message" (no brackets, colon
+// time, " - " separator). System events use the same prefix but have NO
+// colon after the sender at all (e.g. "Adit is a contact") - that absence is
+// the actual signal WhatsApp uses to mark them, not a specific phrase list.
+const WHATSAPP_ANDROID_LINE =
+  /^(\d{1,2}\/\d{1,2}\/\d{2,4}),\s*(\d{1,2}:\d{2})\s-\s(.+)$/;
+
+// iOS export: "[DD/MM/YY, HH.MM.SS] Sender: Message" - bracketed, 2-digit
+// year, period-separated time-with-seconds. Unlike Android, iOS system
+// events (missed/silenced calls, omitted media) keep the "Sender: Message"
+// shape - they're only distinguishable by content, handled below via
+// SYSTEM_EVENT_PATTERNS.
+const WHATSAPP_IOS_LINE =
+  /^\[(\d{1,2}\/\d{1,2}\/\d{2,4}),\s*(\d{1,2}\.\d{2}\.\d{2})\]\s(.+)$/;
+
+// WhatsApp (especially iOS) wraps system-event text in invisible bidi-control
+// marks (LEFT-/RIGHT-TO-LEFT MARK, zero-width space) - strip them so content
+// matching and display are clean, e.g. "‎Silenced voice call".
+const INVISIBLE_CHARS = /[‎‏​]/g;
+
+// Not an exhaustive list of every WhatsApp system-event string (there's no
+// public spec for it), but covers the common ones across both export styles.
+// Matched against the already invisible-char-stripped message content.
+const SYSTEM_EVENT_PATTERNS: RegExp[] = [
+  /messages and calls are end-to-end encrypted/i,
+  /\b(image|video|audio|sticker|gif|document|contact card) omitted\b/i,
+  /missed (voice|video) call/i,
+  /silenced (voice|video) call/i,
+  /this message was deleted/i,
+  /you deleted this message/i,
+  /^focus mode$/i,
+  /changed (the subject|this group'?s icon|their phone number|to)/i,
+  /created (this )?group/i,
+  /\badded you\b/i,
+  /joined using this group'?s invite link/i,
+  /security code with .* changed/i,
+];
+
+function stripInvisible(text: string): string {
+  return text.replace(INVISIBLE_CHARS, "").trim();
+}
+
+function isSystemEventText(text: string): boolean {
+  return SYSTEM_EVENT_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+// Splits the text after the date/time prefix into sender + content. Android
+// system events have no "Name: " shape at all ("Adit is a contact") - the
+// whole remainder becomes the (unattributed) event description. Real
+// messages and iOS system events both look like "Sender: content"; iOS
+// sender names may carry a "~" prefix for unsaved contacts, stripped here.
+function splitWhatsAppLine(
+  rest: string
+): { speaker: string; message: string; isSystemEvent: boolean } {
+  const cleaned = stripInvisible(rest);
+  const colonIndex = cleaned.indexOf(": ");
+
+  if (colonIndex === -1) {
+    return { speaker: "system", message: cleaned, isSystemEvent: true };
+  }
+
+  const speaker = cleaned.slice(0, colonIndex).trim().replace(/^~/, "").trim();
+  const message = cleaned.slice(colonIndex + 2).trim();
+
+  return { speaker, message, isSystemEvent: isSystemEventText(message) };
+}
 
 function parseWhatsApp(raw: string): TranscriptMessage[] {
-  const messages: TranscriptMessage[] = [];
+  const messages: (TranscriptMessage & { isSystemEvent: boolean })[] = [];
 
   for (const line of nonBlankLines(raw)) {
     if (line.trim().length === 0) continue;
-    const match = line.match(WHATSAPP_LINE);
 
-    if (match) {
-      const [, date, time, speaker, message] = match;
+    const androidMatch = line.match(WHATSAPP_ANDROID_LINE);
+    const iosMatch = androidMatch ? null : line.match(WHATSAPP_IOS_LINE);
+
+    if (androidMatch || iosMatch) {
+      const [, date, rawTime, rest] = (androidMatch ?? iosMatch)!;
+      // iOS time uses periods (19.04.39); toIsoTimestamp expects colons.
+      const time = rawTime.replace(/\./g, ":");
+      const { speaker, message, isSystemEvent } = splitWhatsAppLine(rest);
+
       messages.push({
-        speaker: speaker.trim(),
-        message: message.trim(),
+        speaker,
+        message,
         timestamp: toIsoTimestamp(date, time) ?? syntheticTimestamp(messages.length),
+        isSystemEvent,
       });
     } else if (messages.length > 0) {
-      messages[messages.length - 1].message += `\n${line.trim()}`;
+      messages[messages.length - 1].message += `\n${stripInvisible(line.trim())}`;
     }
   }
 
-  return messages;
+  // System events (encryption notices, omitted media, calls, membership
+  // changes) are structural noise for grooming-stage analysis, not
+  // conversation - filtered out, matching how parseDiscord/parseTelegramExport
+  // already drop their own non-content message types.
+  return messages
+    .filter((message) => !message.isSystemEvent)
+    .map(({ isSystemEvent: _isSystemEvent, ...message }) => message);
 }
 
 // Matches Discord's copy-paste header line, e.g. "Mom — Today at 2:02 PM"
