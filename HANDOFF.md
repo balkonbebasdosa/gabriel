@@ -739,3 +739,17 @@ Frontend (confirmed via exploration first: zero existing auth infra, zero routes
 - This branch has not been pushed — per standing preference, git commit/push commands are handed to Adit to run himself, not executed directly.
 
 **next agent should:** if doing a live browser verification, remember `NEXT_PUBLIC_BACKEND_URL` must be set for the frontend to hit a real backend instead of its mock fallback — the mock fallback path doesn't go through login/history at all (`analyzeTranscript` short-circuits before `authHeaders()` even matters). If picking up further auth work, the token-storage key names (`gabriel_token`, `gabriel_email` in `localStorage`) are only defined in `lib/api.ts`/`lib/auth-context.tsx` — don't duplicate them elsewhere.
+
+---
+
+### [branch: authentication] — 2026-07-17 16:10 WIB
+
+**changed:** restructured navigation per Adit's request — `/` is no longer the analysis tool directly. It's now a simple, distinct landing page (project framing + the four-stage list + a "Analyze a transcript" CTA), with the actual upload/analyze flow moved to its own `/analyze` route. Login/register already redirected to `/` (unchanged), so they now funnel into this new home page instead of straight into the tool. `Header`/`BottomNav`'s "Analysis" item now points to `/analyze`; the "Gabriel" wordmark in both the desktop and mobile headers is now a link back to `/`.
+
+**Caught a real build-breaking bug while doing this**: `STAGE_ACCENT` (the stage → color mapping) lived in `StageTimeline.tsx`, a `"use client"` module. Importing it from the new `page.tsx` (a plain server component) compiled fine but failed at prerender time (`Cannot read properties of undefined (reading 'chip')`) — exports from a `"use client"` module don't survive being imported into a server component the way a plain export would. Fixed by moving `STAGE_ACCENT` into `lib/types.ts` (a boundary-free module already shared by both), which `StageTimeline.tsx` now imports instead of defining locally.
+
+**interface impact:** none (frontend routing/UI only).
+
+**still open:** same as previous entry — no live browser click-through yet, verified via `npm run build`/`npm run lint` (both clean, all 7 routes generated correctly: `/`, `/analyze`, `/history`, `/history/[id]`, `/login`, `/register`, plus `/_not-found`).
+
+**next agent should:** if adding more server-component pages that need stage colors/labels, import from `lib/types.ts`, not `components/StageTimeline.tsx` — the latter is client-only.

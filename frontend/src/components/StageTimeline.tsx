@@ -5,6 +5,7 @@ import {
   AnalysisResult,
   Participant,
   STAGES,
+  STAGE_ACCENT,
   STAGE_LABELS,
   Stage,
   TranscriptMessage,
@@ -14,32 +15,6 @@ interface StageTimelineProps {
   result: AnalysisResult;
   transcript: TranscriptMessage[];
 }
-
-const STAGE_ACCENT: Record<
-  Stage,
-  { bar: string; chip: string; icon: string }
-> = {
-  trust_building: {
-    bar: "bg-tertiary",
-    chip: "bg-tertiary text-on-tertiary",
-    icon: "border-tertiary",
-  },
-  risk_assessment: {
-    bar: "bg-secondary-container",
-    chip: "bg-secondary-container text-on-secondary",
-    icon: "border-secondary-container",
-  },
-  isolation_secrecy: {
-    bar: "bg-quaternary-container",
-    chip: "bg-quaternary-container text-on-quaternary",
-    icon: "border-quaternary-container",
-  },
-  desensitization: {
-    bar: "bg-error",
-    chip: "bg-error text-on-error",
-    icon: "border-error",
-  },
-};
 
 function ParticipantRow({
   participant,

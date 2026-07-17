@@ -6,13 +6,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
 const NAV_ITEMS = [
-  { label: "Analysis", href: "/" },
+  { label: "Analysis", href: "/analyze" },
   { label: "History", href: "/history" },
   { label: "Settings", href: null },
 ];
 
 function isActive(pathname: string, href: string): boolean {
-  if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -74,9 +73,9 @@ export function Header() {
       <header className="hidden md:block w-full bg-transparent">
         <nav className="mx-auto flex max-w-[1200px] items-center justify-between px-12 py-10">
           <div className="flex items-center gap-16">
-            <span className="text-[32px] font-extrabold tracking-tight text-primary">
+            <Link href="/" className="text-[32px] font-extrabold tracking-tight text-primary">
               Gabriel
-            </span>
+            </Link>
             <div className="ml-6 flex gap-10">
               {NAV_ITEMS.map((item) =>
                 item.href ? (
@@ -118,7 +117,7 @@ export function Header() {
 
       {/* Mobile fixed top bar */}
       <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between bg-background/80 px-5 py-4 backdrop-blur-md md:hidden">
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <span
               className="material-symbols-outlined text-[20px] text-on-primary"
@@ -130,7 +129,7 @@ export function Header() {
           <span className="text-[22px] font-extrabold tracking-tight text-primary">
             Gabriel
           </span>
-        </div>
+        </Link>
         <AccountMenu />
       </header>
     </>

@@ -4,13 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
-  { label: "Analysis", icon: "insights", href: "/" },
+  { label: "Analysis", icon: "insights", href: "/analyze" },
   { label: "History", icon: "history", href: "/history" },
   { label: "Settings", icon: "settings", href: null },
 ];
 
 function isActive(pathname: string, href: string): boolean {
-  if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
