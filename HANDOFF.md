@@ -753,3 +753,80 @@ Frontend (confirmed via exploration first: zero existing auth infra, zero routes
 **still open:** same as previous entry — no live browser click-through yet, verified via `npm run build`/`npm run lint` (both clean, all 7 routes generated correctly: `/`, `/analyze`, `/history`, `/history/[id]`, `/login`, `/register`, plus `/_not-found`).
 
 **next agent should:** if adding more server-component pages that need stage colors/labels, import from `lib/types.ts`, not `components/StageTimeline.tsx` — the latter is client-only.
+
+---
+
+### [branch: feat/ai-gabriel] — 2026-07-17 (session end, Indonesian slang handling)
+
+**changed:** added Indonesian-language and slang handling to `app/rubric.py`, in three iterations
+(each caught a real problem the previous one introduced — worth reading in order):
+
+1. **Multilingual instruction**: transcripts may be English, Bahasa Indonesia (including informal
+   chat slang), or mixed — apply the rubric identically, always write rationale/summary fields in
+   English regardless of input language.
+2. **Slang vocabulary examples under `desensitization`**: illustrative (not exhaustive) Indonesian
+   sexual slang — "ewe"/"ngewe," "jilat," "sepong," "colmek," "kontol"/"memek" — sourced from
+   general knowledge, not native-speaker-verified; flagged to get a native-speaker teammate to
+   check/expand this. Verified via a controlled test (same slang word, one version in a clear
+   adult-minor grooming context, one in benign adult peer banter) that the model previously
+   recognized the *secrecy* half of a mixed message but missed the *sexual* half entirely — a real
+   vocabulary gap, not a context-judgment feature. Fixed by (2); confirmed the grooming-context
+   case now correctly reaches `desensitization` at 0.95+.
+3. **Foul-language routing rule (this fixed a real over-correction from step 2)**: testing (2)
+   against a real benign adult friend-group chat (WhatsApp export, not synthetic) showed it now
+   over-triggered — flagged crude sexual slang as `desensitization` even with zero grooming context,
+   AND mis-tagged an unrelated nearby message ("cok," not sexual at all, just profanity) as
+   `desensitization` too, apparently by proximity contamination. Fixed with an explicit rule: foul/
+   crude/explicit language of any kind must never collapse to plain `trust_building` (always at
+   least worth surfacing), but only escalates to the full stage classification (up to
+   `desensitization`) when the conversation establishes a clear adult-minor dynamic; otherwise it's
+   capped at `risk_assessment`. Also added an explicit "don't tag nearby messages by proximity,
+   judge each on its own content" instruction to address the "cok" mis-tag specifically.
+
+**verified live, all three together:**
+- Real benign peer chat (adult friends, crude language, no minor involved): sexual slang message →
+  `risk_assessment` (not `desensitization`, not silently `trust_building`); the unrelated profanity
+  message no longer gets contaminated by proximity.
+- Constructed adult-minor grooming context (parental-supervision question answered, then the same
+  slang word used with a secrecy request): still correctly reaches `desensitization` at 0.95.
+- Plain benign transcript, no foul language at all: completely unaffected, `stages_reached: []`.
+
+**interface impact:** none — prompt-only change, same response shape.
+
+**still open:** the slang vocabulary list is illustrative and unverified by a native speaker — get
+Davin/Gunta or another Indonesian-speaking teammate to review before quoting it as authoritative.
+The "clear adult-minor dynamic" detection itself is judged by the model from context cues (age
+mentions, parent/guardian references, supervision questions) — not a separate deterministic check,
+so it inherits the same qualitative-judgment tradeoffs as the rest of the rubric.
+
+**next agent should:** if extending language support further, follow the same test-both-directions
+discipline this thread used (a fix that only gets checked against the case that motivated it can
+silently break something else — this happened twice today, caught both times by direct user testing
+rather than this session's own verification).
+
+---
+
+### [branch: feat/ai-gabriel] — 2026-07-17 (merge reconciliation with authentication branch)
+
+**changed:** merged `origin/authentication` (Adit's real login/register + backend-integrated
+history) into this branch. Before merging, this branch had accumulated a parallel, mock-data-only
+implementation of the same feature — a `/main` menu page and a top-level `/history` list/detail
+pair, built from `lib/mock.ts` fixtures with no auth. Adit's branch independently built the same
+menu/history concept but properly wired to the real backend (`getHistory()`/`getHistoryDetail()` in
+`lib/api.ts`) and gated behind an actual login (`(protected)/layout.tsx` + `auth-context.tsx`) — a
+strict superset. Rather than reconciling file-by-file, the mock-based WIP (`app/main/page.tsx`,
+top-level `app/history/`, `lib/stage-accent.ts`, and the associated `Header.tsx`/`BottomNav.tsx`
+nav-href edits) was stashed and left unapplied; only this HANDOFF entry and the earlier Indonesian
+slang rubric commit (isolated to `ai-service/app/rubric.py`, no file overlap with Adit's changes)
+survived from the local session. The merge itself was conflict-free.
+
+**interface impact:** none beyond what the authentication branch itself already introduced.
+
+**still open:** the stashed WIP (`git stash list`) still exists locally in case anything in it
+turns out to be worth salvaging, but is not expected to be needed — Adit's version is strictly more
+complete (real auth, real persistence, pathname-based active-nav state vs. this session's hardcoded
+`active` booleans).
+
+**next agent should:** treat `(protected)/page.tsx`, `(protected)/history/*`, `login/page.tsx`,
+`register/page.tsx`, and `lib/auth-context.tsx` as the authoritative versions of "main menu +
+history" — do not resurrect the stashed top-level `/main`/`/history` pages.

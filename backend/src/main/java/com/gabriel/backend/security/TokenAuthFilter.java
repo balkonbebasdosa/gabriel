@@ -38,7 +38,11 @@ public class TokenAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        if (PUBLIC_PATHS.contains(request.getRequestURI())) {
+        // CORS preflight requests carry no Authorization header and must reach
+        // Spring MVC's CorsConfig unauthenticated, or the browser sees a 401
+        // with no Access-Control-Allow-Origin header and aborts the real
+        // request with a generic "Failed to fetch" before it's even sent.
+        if ("OPTIONS".equals(request.getMethod()) || PUBLIC_PATHS.contains(request.getRequestURI())) {
             filterChain.doFilter(request, response);
             return;
         }
