@@ -19,7 +19,8 @@ human review — it never issues an automated accusation.
 
 ## Tech stack
 
-- **Backend**: Spring Boot 3.x, PostgreSQL, Spring Data JPA
+- **Backend**: Spring Boot 4.1, PostgreSQL, Spring Data JPA (bumped from the originally planned
+  3.x — `start.spring.io` dropped 3.x support before this was built; see `backend/README.md`)
 - **AI service**: Python, FastAPI, Anthropic API
 - **Frontend**: Next.js, React, Tailwind CSS, Recharts
 - **Data store**: PostgreSQL
