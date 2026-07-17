@@ -45,6 +45,11 @@ export const MOCK_ANALYSIS_RESULT: AnalysisResult = {
           "mock behavior summary — stub response for local development, not a real behavior assessment",
       },
     ],
-    person_of_interest_summary: null,
+    person_of_interest_summary: {
+      speaker: "B",
+      role: "unclear",
+      behavior_summary:
+        "mock behavior summary — stub response for local development, not a real behavior assessment",
+    },
   },
 };

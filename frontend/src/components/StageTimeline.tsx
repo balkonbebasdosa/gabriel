@@ -97,17 +97,19 @@ export function StageTimeline({ result, transcript }: StageTimelineProps) {
     return map;
   }, [transcript]);
 
-  const [expandedIndices, setExpandedIndices] = useState<Set<number>>(
-    new Set()
-  );
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
 
-  function toggleExpanded(index: number) {
-    setExpandedIndices((prev) => {
+  function expandKey(stage: Stage, messageIndex: number) {
+    return `${stage}:${messageIndex}`;
+  }
+
+  function toggleExpanded(key: string) {
+    setExpandedKeys((prev) => {
       const next = new Set(prev);
-      if (next.has(index)) {
-        next.delete(index);
+      if (next.has(key)) {
+        next.delete(key);
       } else {
-        next.add(index);
+        next.add(key);
       }
       return next;
     });
@@ -210,7 +212,9 @@ export function StageTimeline({ result, transcript }: StageTimelineProps) {
 
                   {segments.length > 0 && (
                     <ul className="mt-3 flex flex-col gap-2">
-                      {segments.map((segment) => (
+                      {segments.map((segment) => {
+                        const key = expandKey(stage, segment.message_index);
+                        return (
                         <li
                           key={segment.message_index}
                           className="rounded-lg bg-background p-3 text-sm"
@@ -218,19 +222,19 @@ export function StageTimeline({ result, transcript }: StageTimelineProps) {
                           <div className="flex items-center justify-between text-xs font-medium text-on-surface-variant">
                             <button
                               type="button"
-                              onClick={() => toggleExpanded(segment.message_index)}
-                              aria-expanded={expandedIndices.has(segment.message_index)}
+                              onClick={() => toggleExpanded(key)}
+                              aria-expanded={expandedKeys.has(key)}
                               className="text-left font-bold text-primary underline decoration-dotted underline-offset-2"
                             >
                               message #{segment.message_index}{" "}
-                              {expandedIndices.has(segment.message_index) ? "▾" : "▸"}
+                              {expandedKeys.has(key) ? "▾" : "▸"}
                             </button>
                             <span>
                               confidence {Math.round(segment.confidence * 100)}%
                             </span>
                           </div>
                           <p className="mt-1 text-on-surface">{segment.rationale}</p>
-                          {expandedIndices.has(segment.message_index) && (
+                          {expandedKeys.has(key) && (
                             <div
                               className={`mt-2 rounded-lg border-l-4 bg-surface-card p-2 text-xs text-on-surface ${accent.icon}`}
                             >
@@ -249,7 +253,8 @@ export function StageTimeline({ result, transcript }: StageTimelineProps) {
                             </div>
                           )}
                         </li>
-                      ))}
+                        );
+                      })}
                     </ul>
                   )}
                 </div>
