@@ -4,8 +4,11 @@ import com.gabriel.backend.client.dto.AnalyzeRequest;
 import com.gabriel.backend.client.dto.AnalyzeResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+
+import java.net.http.HttpClient;
 
 /**
  * Calls Gabriel's real AI service at {ai-service.base-url}/analyze. Wired in
@@ -21,7 +24,17 @@ public class HttpAnalyzeClient implements AnalyzeClient {
 
     public HttpAnalyzeClient(RestClient.Builder restClientBuilder,
                               @Value("${ai-service.base-url}") String baseUrl) {
-        this.restClient = restClientBuilder.baseUrl(baseUrl).build();
+        // Force HTTP/1.1: the JDK HttpClient's default HTTP/2 preference sends a
+        // cleartext (h2c) Upgrade probe first and withholds the request body until
+        // the upgrade completes. ai-service (uvicorn/ASGI) doesn't understand h2c
+        // upgrade, so it silently receives an empty body and 422s on every call.
+        HttpClient httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .build();
+        this.restClient = restClientBuilder
+                .baseUrl(baseUrl)
+                .requestFactory(new JdkClientHttpRequestFactory(httpClient))
+                .build();
     }
 
     @Override
