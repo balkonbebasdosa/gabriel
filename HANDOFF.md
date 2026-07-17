@@ -707,3 +707,126 @@ motivated the fix. A fix that only gets checked against the thing it was built t
 its own test while silently breaking everything else.
 
 **interface impact:** none — same shape, same model, just one parameter removed.
+
+---
+
+### [branch: authentication] — 2026-07-17 15:30 WIB
+
+**changed:** added simulated user authentication (register/login/token) and a chat-history feature, spanning both `/backend` and `/frontend` (explicit direction from Adit to alter both for this feature).
+
+Backend:
+- New `User` entity (`app_user` table — `user` is a Postgres reserved word), `UserRepository`. Password hashing via `spring-security-crypto`'s `BCryptPasswordEncoder` (just the hashing module, not the full `spring-boot-starter-security` filter chain).
+- Auth mechanism is a **simple opaque token** (confirmed with Adit over JWT before implementing): generated on register/login, stored on `User.token`, checked via `Authorization: Bearer <token>`. No signing secret, no new env vars.
+- `TokenAuthFilter` (`OncePerRequestFilter`, auto-registered by Spring Boot): public paths (`/auth/register`, `/auth/login`, `/health`) pass through; everything else needs a valid token or gets a 401 written directly (runs before `DispatcherServlet`, so `GlobalExceptionHandler` can't catch it). **Caught a real bug before it shipped**: the public-path check initially used `request.getServletPath()`, which returns `""` under Spring's default `"/"` servlet mapping (a servlet-spec quirk — the whole path lands in `getPathInfo()` instead) — every request, including to public paths, was 401ing. Fixed to `request.getRequestURI()`.
+- `Transcript` gained a `user` FK (ownership). `TranscriptRepository.findByIdAndUserId` replaces bare `findById` everywhere — a transcript that exists but belongs to someone else 404s exactly like one that doesn't exist (never 403, so ownership can't be probed). New `GET /transcripts` (chat history list) reuses the existing `TranscriptDetailResponse` shape, no new DTO needed.
+- New `AuthController`/`AuthService`/`RegisterRequest`/`LoginRequest`/`AuthResponse`, plus `InvalidCredentialsException` (401, same generic message whether the email doesn't exist or the password is wrong — no user enumeration) and `EmailAlreadyRegisteredException` (409).
+- All 9 existing `TranscriptFlowIntegrationTest` cases now register a fresh user in `@BeforeEach` and attach the token — they'd all 401 otherwise. Added 3 new tests there (missing-token → 401, cross-user access → 404, list scoping) plus a new `AuthFlowIntegrationTest` (6 tests: register→login round trip, duplicate email, malformed email, short password, wrong password, unknown email).
+- `docs/api-contract.md`: new section 0 (Authentication), new section 2 (`GET /transcripts` list), sections renumbered accordingly (old section 6 is now 7) — every cross-reference to "section 6" updated.
+
+Frontend (confirmed via exploration first: zero existing auth infra, zero routes beyond `app/page.tsx`, no state/forms libraries — followed that existing minimal-dependency convention):
+- `lib/auth-context.tsx`: a small `AuthProvider`/`useAuth()` context, token persisted to `localStorage`. Read `frontend/AGENTS.md`'s warning that this Next.js version (16.2.10) may differ from training data before writing any routing code — confirmed via `node_modules/next/dist/docs` that dynamic route `params` are now a `Promise` (client pages use `useParams()` instead) and route groups/`usePathname` work as expected.
+- `lib/api.ts`: added `registerUser`/`loginUser`/`getHistory`/`getHistoryDetail`, a shared `authHeaders()` helper reading the token at call time (existing function signatures like `analyzeTranscript(transcript, poiSpeaker)` unchanged), and normalized the pre-existing inconsistency where `createTranscript` always set `Content-Type` but `runAnalysis` only did it conditionally.
+- Routes restructured: `app/page.tsx` moved to `app/(protected)/page.tsx` (route groups don't affect the URL), new `app/(protected)/layout.tsx` (client-side guard — redirects to `/login` if no token), `app/(protected)/history/page.tsx` (list), `app/(protected)/history/[id]/page.tsx` (detail — reuses the existing `<StageTimeline>` component unchanged, since the backend's combined transcript+analysis shape maps directly onto its existing `result`/`transcript` props), `app/login/page.tsx`, `app/register/page.tsx`.
+- `Header.tsx`/`BottomNav.tsx`: both previously hardcoded `active` per nav item and linked every item to `href="/"` regardless — fixed properly while wiring up History, using `usePathname()` to derive active state for real. Header's static person-icon avatar is now a click-to-toggle popover (email + log out).
+- Two real ESLint errors caught and fixed: unescaped apostrophes (`&apos;`), and `react-hooks/set-state-in-effect` flagging `auth-context.tsx`'s mount effect — legitimate flag, but this is the documented-valid "synchronize with an external system" exception (reading `localStorage` in a `useState` initializer instead would cause a hydration mismatch, since `localStorage` doesn't exist during SSR) — suppressed narrowly with a comment explaining why, not broadly.
+
+**interface impact:** yes — every `/transcripts/**` endpoint now requires `Authorization: Bearer <token>` (401 if missing/invalid), and `GET /transcripts` is a new endpoint. `ai-service` is completely unaffected (stateless, no concept of users).
+
+**still open:**
+- No password reset, no email verification, one active session per user (new login invalidates the previous token) — all deliberately out of scope for "simulated" auth.
+- `ddl-auto: update` will fail to add the new `NOT NULL` `user_id` column if there's existing transcript data in the target DB (fine for a dev DB that gets recreated; worth knowing before pointing at Supabase with existing rows).
+- Frontend verified via `npm run build` + `npm run lint` (both clean) and the backend via `./mvnw test`/`./mvnw -B -ntp verify` (both green, 19/19 tests) — no live browser click-through was done this session (no Docker/Postgres available locally to run the real, non-test app end-to-end).
+- This branch has not been pushed — per standing preference, git commit/push commands are handed to Adit to run himself, not executed directly.
+
+**next agent should:** if doing a live browser verification, remember `NEXT_PUBLIC_BACKEND_URL` must be set for the frontend to hit a real backend instead of its mock fallback — the mock fallback path doesn't go through login/history at all (`analyzeTranscript` short-circuits before `authHeaders()` even matters). If picking up further auth work, the token-storage key names (`gabriel_token`, `gabriel_email` in `localStorage`) are only defined in `lib/api.ts`/`lib/auth-context.tsx` — don't duplicate them elsewhere.
+
+---
+
+### [branch: authentication] — 2026-07-17 16:10 WIB
+
+**changed:** restructured navigation per Adit's request — `/` is no longer the analysis tool directly. It's now a simple, distinct landing page (project framing + the four-stage list + a "Analyze a transcript" CTA), with the actual upload/analyze flow moved to its own `/analyze` route. Login/register already redirected to `/` (unchanged), so they now funnel into this new home page instead of straight into the tool. `Header`/`BottomNav`'s "Analysis" item now points to `/analyze`; the "Gabriel" wordmark in both the desktop and mobile headers is now a link back to `/`.
+
+**Caught a real build-breaking bug while doing this**: `STAGE_ACCENT` (the stage → color mapping) lived in `StageTimeline.tsx`, a `"use client"` module. Importing it from the new `page.tsx` (a plain server component) compiled fine but failed at prerender time (`Cannot read properties of undefined (reading 'chip')`) — exports from a `"use client"` module don't survive being imported into a server component the way a plain export would. Fixed by moving `STAGE_ACCENT` into `lib/types.ts` (a boundary-free module already shared by both), which `StageTimeline.tsx` now imports instead of defining locally.
+
+**interface impact:** none (frontend routing/UI only).
+
+**still open:** same as previous entry — no live browser click-through yet, verified via `npm run build`/`npm run lint` (both clean, all 7 routes generated correctly: `/`, `/analyze`, `/history`, `/history/[id]`, `/login`, `/register`, plus `/_not-found`).
+
+**next agent should:** if adding more server-component pages that need stage colors/labels, import from `lib/types.ts`, not `components/StageTimeline.tsx` — the latter is client-only.
+
+---
+
+### [branch: feat/ai-gabriel] — 2026-07-17 (session end, Indonesian slang handling)
+
+**changed:** added Indonesian-language and slang handling to `app/rubric.py`, in three iterations
+(each caught a real problem the previous one introduced — worth reading in order):
+
+1. **Multilingual instruction**: transcripts may be English, Bahasa Indonesia (including informal
+   chat slang), or mixed — apply the rubric identically, always write rationale/summary fields in
+   English regardless of input language.
+2. **Slang vocabulary examples under `desensitization`**: illustrative (not exhaustive) Indonesian
+   sexual slang — "ewe"/"ngewe," "jilat," "sepong," "colmek," "kontol"/"memek" — sourced from
+   general knowledge, not native-speaker-verified; flagged to get a native-speaker teammate to
+   check/expand this. Verified via a controlled test (same slang word, one version in a clear
+   adult-minor grooming context, one in benign adult peer banter) that the model previously
+   recognized the *secrecy* half of a mixed message but missed the *sexual* half entirely — a real
+   vocabulary gap, not a context-judgment feature. Fixed by (2); confirmed the grooming-context
+   case now correctly reaches `desensitization` at 0.95+.
+3. **Foul-language routing rule (this fixed a real over-correction from step 2)**: testing (2)
+   against a real benign adult friend-group chat (WhatsApp export, not synthetic) showed it now
+   over-triggered — flagged crude sexual slang as `desensitization` even with zero grooming context,
+   AND mis-tagged an unrelated nearby message ("cok," not sexual at all, just profanity) as
+   `desensitization` too, apparently by proximity contamination. Fixed with an explicit rule: foul/
+   crude/explicit language of any kind must never collapse to plain `trust_building` (always at
+   least worth surfacing), but only escalates to the full stage classification (up to
+   `desensitization`) when the conversation establishes a clear adult-minor dynamic; otherwise it's
+   capped at `risk_assessment`. Also added an explicit "don't tag nearby messages by proximity,
+   judge each on its own content" instruction to address the "cok" mis-tag specifically.
+
+**verified live, all three together:**
+- Real benign peer chat (adult friends, crude language, no minor involved): sexual slang message →
+  `risk_assessment` (not `desensitization`, not silently `trust_building`); the unrelated profanity
+  message no longer gets contaminated by proximity.
+- Constructed adult-minor grooming context (parental-supervision question answered, then the same
+  slang word used with a secrecy request): still correctly reaches `desensitization` at 0.95.
+- Plain benign transcript, no foul language at all: completely unaffected, `stages_reached: []`.
+
+**interface impact:** none — prompt-only change, same response shape.
+
+**still open:** the slang vocabulary list is illustrative and unverified by a native speaker — get
+Davin/Gunta or another Indonesian-speaking teammate to review before quoting it as authoritative.
+The "clear adult-minor dynamic" detection itself is judged by the model from context cues (age
+mentions, parent/guardian references, supervision questions) — not a separate deterministic check,
+so it inherits the same qualitative-judgment tradeoffs as the rest of the rubric.
+
+**next agent should:** if extending language support further, follow the same test-both-directions
+discipline this thread used (a fix that only gets checked against the case that motivated it can
+silently break something else — this happened twice today, caught both times by direct user testing
+rather than this session's own verification).
+
+---
+
+### [branch: feat/ai-gabriel] — 2026-07-17 (merge reconciliation with authentication branch)
+
+**changed:** merged `origin/authentication` (Adit's real login/register + backend-integrated
+history) into this branch. Before merging, this branch had accumulated a parallel, mock-data-only
+implementation of the same feature — a `/main` menu page and a top-level `/history` list/detail
+pair, built from `lib/mock.ts` fixtures with no auth. Adit's branch independently built the same
+menu/history concept but properly wired to the real backend (`getHistory()`/`getHistoryDetail()` in
+`lib/api.ts`) and gated behind an actual login (`(protected)/layout.tsx` + `auth-context.tsx`) — a
+strict superset. Rather than reconciling file-by-file, the mock-based WIP (`app/main/page.tsx`,
+top-level `app/history/`, `lib/stage-accent.ts`, and the associated `Header.tsx`/`BottomNav.tsx`
+nav-href edits) was stashed and left unapplied; only this HANDOFF entry and the earlier Indonesian
+slang rubric commit (isolated to `ai-service/app/rubric.py`, no file overlap with Adit's changes)
+survived from the local session. The merge itself was conflict-free.
+
+**interface impact:** none beyond what the authentication branch itself already introduced.
+
+**still open:** the stashed WIP (`git stash list`) still exists locally in case anything in it
+turns out to be worth salvaging, but is not expected to be needed — Adit's version is strictly more
+complete (real auth, real persistence, pathname-based active-nav state vs. this session's hardcoded
+`active` booleans).
+
+**next agent should:** treat `(protected)/page.tsx`, `(protected)/history/*`, `login/page.tsx`,
+`register/page.tsx`, and `lib/auth-context.tsx` as the authoritative versions of "main menu +
+history" — do not resurrect the stashed top-level `/main`/`/history` pages.

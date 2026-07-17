@@ -33,8 +33,8 @@ public class AnalysisService {
     }
 
     @Transactional
-    public AnalysisResponse analyzeTranscript(UUID transcriptId, String personOfInterest) {
-        Transcript transcript = transcriptService.getTranscriptOrThrow(transcriptId);
+    public AnalysisResponse analyzeTranscript(UUID transcriptId, UUID userId, String personOfInterest) {
+        Transcript transcript = transcriptService.getTranscriptOrThrow(transcriptId, userId);
         validatePersonOfInterest(transcript, personOfInterest);
 
         AnalyzeResponse aiResponse = analyzeClient.analyze(toAnalyzeRequest(transcript, personOfInterest));

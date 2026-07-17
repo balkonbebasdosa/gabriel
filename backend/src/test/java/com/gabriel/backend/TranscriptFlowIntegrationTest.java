@@ -2,9 +2,12 @@ package com.gabriel.backend;
 
 import com.gabriel.backend.dto.AnalysisResponse;
 import com.gabriel.backend.dto.AnalyzeTranscriptRequest;
+import com.gabriel.backend.dto.AuthResponse;
 import com.gabriel.backend.dto.MessageRequest;
+import com.gabriel.backend.dto.RegisterRequest;
 import com.gabriel.backend.dto.TranscriptCreatedResponse;
 import com.gabriel.backend.dto.TranscriptDetailResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,7 +31,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Exercises the real HTTP layer end-to-end (upload -> analyze -> fetch),
+ * Exercises the real HTTP layer end-to-end (register -> upload -> analyze -> fetch),
  * plus the validation error paths - the golden path a curl session against
  * a running server would otherwise cover.
  */
@@ -43,6 +46,23 @@ class TranscriptFlowIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private String token;
+
+    @BeforeEach
+    void registerUser() throws Exception {
+        String email = "user-" + UUID.randomUUID() + "@example.com";
+        MvcResult result = mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new RegisterRequest(email, "password123"))))
+                .andExpect(status().isCreated())
+                .andReturn();
+        token = objectMapper.readValue(result.getResponse().getContentAsString(), AuthResponse.class).token();
+    }
+
+    private String auth() {
+        return "Bearer " + token;
+    }
+
     @Test
     void uploadAnalyzeAndFetch_roundTripsThroughRealHttp() throws Exception {
         List<MessageRequest> messages = List.of(
@@ -51,6 +71,7 @@ class TranscriptFlowIntegrationTest {
         );
 
         MvcResult uploadResult = mockMvc.perform(post("/transcripts")
+                        .header("Authorization", auth())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(messages)))
                 .andExpect(status().isCreated())
@@ -61,7 +82,8 @@ class TranscriptFlowIntegrationTest {
         assertEquals(2, created.messageCount());
         UUID transcriptId = created.id();
 
-        MvcResult analyzeResult = mockMvc.perform(post("/transcripts/{id}/analyze", transcriptId))
+        MvcResult analyzeResult = mockMvc.perform(post("/transcripts/{id}/analyze", transcriptId)
+                        .header("Authorization", auth()))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -74,7 +96,8 @@ class TranscriptFlowIntegrationTest {
         assertEquals(2, analysis.conclusion().participants().size());
         assertNull(analysis.conclusion().personOfInterestSummary());
 
-        MvcResult getResult = mockMvc.perform(get("/transcripts/{id}", transcriptId))
+        MvcResult getResult = mockMvc.perform(get("/transcripts/{id}", transcriptId)
+                        .header("Authorization", auth()))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -83,6 +106,27 @@ class TranscriptFlowIntegrationTest {
         assertEquals(2, detail.messages().size());
         assertNotNull(detail.latestAnalysis());
         assertEquals(0.18, detail.latestAnalysis().progressionScore());
+    }
+
+    @Test
+    void listTranscripts_returnsOnlyCurrentUsersTranscripts() throws Exception {
+        List<MessageRequest> messages = List.of(
+                new MessageRequest("A", "hey", Instant.parse("2026-07-16T14:02:00Z"))
+        );
+        mockMvc.perform(post("/transcripts")
+                        .header("Authorization", auth())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(messages)))
+                .andExpect(status().isCreated());
+
+        MvcResult listResult = mockMvc.perform(get("/transcripts")
+                        .header("Authorization", auth()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        TranscriptDetailResponse[] history = objectMapper.readValue(
+                listResult.getResponse().getContentAsString(), TranscriptDetailResponse[].class);
+        assertEquals(1, history.length);
     }
 
     @Test
@@ -96,6 +140,7 @@ class TranscriptFlowIntegrationTest {
         );
 
         MvcResult uploadResult = mockMvc.perform(post("/transcripts")
+                        .header("Authorization", auth())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(messages)))
                 .andExpect(status().isCreated())
@@ -106,6 +151,7 @@ class TranscriptFlowIntegrationTest {
         // person_of_interest = "C", a middle speaker - not the first or last one added,
         // to prove matching isn't accidentally order-dependent.
         MvcResult analyzeResult = mockMvc.perform(post("/transcripts/{id}/analyze", transcriptId)
+                        .header("Authorization", auth())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new AnalyzeTranscriptRequest("C"))))
                 .andExpect(status().isOk())
@@ -117,7 +163,8 @@ class TranscriptFlowIntegrationTest {
         assertNotNull(analysis.conclusion().personOfInterestSummary());
         assertEquals("C", analysis.conclusion().personOfInterestSummary().speaker());
 
-        MvcResult getResult = mockMvc.perform(get("/transcripts/{id}", transcriptId))
+        MvcResult getResult = mockMvc.perform(get("/transcripts/{id}", transcriptId)
+                        .header("Authorization", auth()))
                 .andExpect(status().isOk())
                 .andReturn();
         TranscriptDetailResponse detail = objectMapper.readValue(
@@ -139,6 +186,7 @@ class TranscriptFlowIntegrationTest {
         );
 
         MvcResult uploadResult = mockMvc.perform(post("/transcripts")
+                        .header("Authorization", auth())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(messages)))
                 .andExpect(status().isCreated())
@@ -147,6 +195,7 @@ class TranscriptFlowIntegrationTest {
                 uploadResult.getResponse().getContentAsString(), TranscriptCreatedResponse.class).id();
 
         MvcResult analyzeResult = mockMvc.perform(post("/transcripts/{id}/analyze", transcriptId)
+                        .header("Authorization", auth())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new AnalyzeTranscriptRequest("p6"))))
                 .andExpect(status().isOk())
@@ -167,6 +216,7 @@ class TranscriptFlowIntegrationTest {
         );
 
         MvcResult uploadResult = mockMvc.perform(post("/transcripts")
+                        .header("Authorization", auth())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(messages)))
                 .andExpect(status().isCreated())
@@ -175,6 +225,7 @@ class TranscriptFlowIntegrationTest {
                 uploadResult.getResponse().getContentAsString(), TranscriptCreatedResponse.class).id();
 
         MvcResult analyzeResult = mockMvc.perform(post("/transcripts/{id}/analyze", transcriptId)
+                        .header("Authorization", auth())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new AnalyzeTranscriptRequest("B"))))
                 .andExpect(status().isOk())
@@ -194,6 +245,7 @@ class TranscriptFlowIntegrationTest {
         );
 
         MvcResult uploadResult = mockMvc.perform(post("/transcripts")
+                        .header("Authorization", auth())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(messages)))
                 .andExpect(status().isCreated())
@@ -202,6 +254,7 @@ class TranscriptFlowIntegrationTest {
                 uploadResult.getResponse().getContentAsString(), TranscriptCreatedResponse.class).id();
 
         mockMvc.perform(post("/transcripts/{id}/analyze", transcriptId)
+                        .header("Authorization", auth())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new AnalyzeTranscriptRequest("nobody-in-this-transcript"))))
                 .andExpect(status().isBadRequest());
@@ -210,6 +263,7 @@ class TranscriptFlowIntegrationTest {
     @Test
     void uploadEmptyTranscript_rejectedWith400() throws Exception {
         mockMvc.perform(post("/transcripts")
+                        .header("Authorization", auth())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[]"))
                 .andExpect(status().isBadRequest());
@@ -218,6 +272,7 @@ class TranscriptFlowIntegrationTest {
     @Test
     void uploadMalformedMessage_missingSpeaker_rejectedWith400() throws Exception {
         mockMvc.perform(post("/transcripts")
+                        .header("Authorization", auth())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[{\"message\": \"hi\", \"timestamp\": \"2026-07-16T14:02:00Z\"}]"))
                 .andExpect(status().isBadRequest());
@@ -225,7 +280,42 @@ class TranscriptFlowIntegrationTest {
 
     @Test
     void getUnknownTranscript_returns404() throws Exception {
-        mockMvc.perform(get("/transcripts/{id}", "00000000-0000-0000-0000-000000000000"))
+        mockMvc.perform(get("/transcripts/{id}", "00000000-0000-0000-0000-000000000000")
+                        .header("Authorization", auth()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void requestWithoutToken_returns401() throws Exception {
+        mockMvc.perform(get("/transcripts"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void anotherUsersTranscript_returns404NotOwnersData() throws Exception {
+        List<MessageRequest> messages = List.of(
+                new MessageRequest("A", "hey, how was school", Instant.parse("2026-07-16T14:02:00Z"))
+        );
+        MvcResult uploadResult = mockMvc.perform(post("/transcripts")
+                        .header("Authorization", auth())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(messages)))
+                .andExpect(status().isCreated())
+                .andReturn();
+        UUID transcriptId = objectMapper.readValue(
+                uploadResult.getResponse().getContentAsString(), TranscriptCreatedResponse.class).id();
+
+        String otherEmail = "user-" + UUID.randomUUID() + "@example.com";
+        MvcResult registerResult = mockMvc.perform(post("/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new RegisterRequest(otherEmail, "password123"))))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String otherToken = objectMapper.readValue(
+                registerResult.getResponse().getContentAsString(), AuthResponse.class).token();
+
+        mockMvc.perform(get("/transcripts/{id}", transcriptId)
+                        .header("Authorization", "Bearer " + otherToken))
                 .andExpect(status().isNotFound());
     }
 
