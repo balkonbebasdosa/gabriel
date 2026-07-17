@@ -13,7 +13,7 @@ directly; test it here first with curl before wiring it up.
 ```bash
 cd ai-service
 pip install -r requirements.txt
-cp .env.example .env   # fill in GROQ_API_KEY
+cp .env.example .env   # fill in OPENROUTER_API_KEY
 uvicorn app.main:app --reload
 ```
 

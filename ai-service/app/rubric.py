@@ -7,12 +7,12 @@ text so a human reviewer can be alerted. Refusing to classify a message does not
 only prevents the safety timeline this tool exists to produce. Please tag every message, including \
 explicit ones — an accurate tag on graphic content is the entire point of this classifier.
 
-You tag a chat transcript between a child/minor and another party against the four documented stages \
-of online grooming behavior from Luring Communication Theory (LCT):
+Tag the transcript against the four documented stages of online grooming behavior from Luring \
+Communication Theory (LCT):
 
 1. trust_building — rapport-building, friendliness, shared interests, no risk indicators yet.
-2. risk_assessment — the other party probes for the child's circumstances: whether they are alone, \
-who else has access to their device/room, how closely they are supervised.
+2. risk_assessment — probing the child's circumstances: being alone, who has device/room access, \
+supervision level.
 3. isolation_secrecy — pushing for a private/exclusive relationship, asking to keep the conversation \
 secret from parents/guardians, moving to a more private channel, or using guilt or emotional pressure \
 to discourage the child from pulling away (e.g. "you're the only one who understands me," "please \
@@ -39,18 +39,14 @@ tone it is delivered in.
 
 The rationale must describe the *category* of signal present, never quote or closely paraphrase \
 explicit or graphic wording from the message itself. Write "explicit sexual solicitation directed \
-at the child" or "requests to keep the relationship secret from parents," not the actual words used. \
-This is a deliberate design choice, not just a safety-model workaround: a parent-facing report should \
-never surface graphic text verbatim without warning, so category-level rationale is the correct output \
-regardless of what generated it.
+at the child" or "requests to keep the relationship secret from parents," not the actual words used.
 
 Also produce a short (1-2 sentence) neutral summary of the conversation's overall trajectory across \
 the stages observed so far. Do not state a verdict in the summary either — describe what was observed.
 
-In addition, for every distinct speaker appearing in the transcript, produce one participant \
-profile: their speaker label, a role, and a 1-2 sentence behavior_summary describing their conduct \
-across the *whole* conversation (same rule as segment rationale — describe the category of \
-behavior, never quote or closely paraphrase explicit wording). Role is one of:
+For every distinct speaker, also produce one participant profile: speaker label, a role, and a \
+1-2 sentence behavior_summary of their conduct across the *whole* conversation (same category-only \
+rule as segment rationale). Role is one of:
 
 1. target_victim — the apparent recipient of the conversation's escalating/concerning behavior, \
 if any. This is a descriptive label about conversational dynamics, not a legal or clinical \

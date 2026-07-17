@@ -584,3 +584,126 @@ own outbound HTTP client is configured, not any request/response shape.
 gain interpretive/judgmental text. Once `staging` is pushed, watch for the CI ai-service/backend
 jobs actually exercising the new `conclusion`-dependent code paths (they didn't exist before this
 session's merge, so this is their first real run on GitHub's runners).
+
+---
+
+### [branch: feat/ai-gabriel] — 2026-07-17 (session end)
+
+**changed:** switched `ai-service`'s LLM gateway from Groq to **OpenRouter** — user's request,
+motivated by Groq having no self-serve paid tier available on this account (only a "Dev Tier"
+signup link in its own error messages, not actually accessible), whereas OpenRouter supports
+instant pay-as-you-go top-ups. Kept the same underlying model (`openai/gpt-oss-20b`) deliberately,
+specifically to avoid re-validating rubric behavior under deadline pressure — only the gateway
+changed, not the model.
+
+- `app/llm_client.py`: `groq` SDK → `openai` SDK pointed at `https://openrouter.ai/api/v1`
+  (OpenRouter is OpenAI-compatible). Same `strict: true` JSON-schema `response_format` call shape
+  as before.
+- Tried OpenRouter's `require_parameters: true` provider preference first (meant to force routing
+  only to backends that honor strict structured output, per OpenRouter's own docs caveat that
+  open-weight models can be served by multiple backend providers with inconsistent support) — this
+  **over-filtered and returned a 404 "no endpoints found"** for `gpt-oss-20b`'s current provider
+  pool entirely. Diagnosed by testing bare call → structured-output call without the restriction →
+  both worked fine standalone. Dropped `require_parameters`; `LLMOutput.model_validate_json()`'s
+  existing validation is the safety net if a provider ever does return malformed JSON.
+- `.env`/`.env.example`/`devops/.env.example`/`devops/docker-compose.yml`: `GROQ_API_KEY`/
+  `GROQ_MODEL` → `OPENROUTER_API_KEY`/`OPENROUTER_MODEL`. `requirements.txt`: added `openai`,
+  kept `groq` installed as a fallback dependency (unused by any current code path).
+- Root `README.md`, `ai-service/README.md`: tech-stack line and setup instructions updated.
+
+**verified live:** minimal call end-to-end (correct schema back), and re-ran the
+`08_guilt_tripping_manipulation.json` fixture specifically (the case validated against Groq
+earlier this session) — got `isolation_secrecy` at 0.7 via OpenRouter vs. 0.725 on Groq for the
+same conversation. Consistent, not identical (expected — OpenRouter may route to a different
+backend instance of the same model, and temperature 0.1 isn't fully deterministic anyway).
+
+**interface impact:** none — this is purely which HTTP API the ai-service calls out to. The
+`/analyze` request/response shape and `docs/api-contract.md` are completely unaffected.
+
+**still open:** only spot-checked one rubric-fix fixture, not the full demo_transcripts set or
+a fresh PAN12 batch, against the new gateway — if there's time before the deadline, worth running
+the same 7-conversation false-negative re-check from earlier in this session against OpenRouter
+too, to confirm nothing regressed. Not done here to conserve remaining time/budget.
+
+**next agent should:** if OpenRouter's routing ever produces malformed JSON in practice (the
+scenario `require_parameters` was meant to prevent), the fix is likely `"provider": {"order":
+[...]}` pinned to a specific known-good backend rather than the blanket `require_parameters`
+gate that failed here — worth checking OpenRouter's activity log to see which provider actually
+served the successful calls before picking one to pin.
+
+---
+
+### [branch: feat/ai-gabriel] — 2026-07-17 (session end, cont'd)
+
+**changed:** fixed the "input too large" errors on long conversations (raised by user testing
+locally with several transcripts). Two changes plus one discovery that reshaped the fix:
+
+- `app/llm_client.py`: `max_tokens` ceiling raised from 8000 (a number tuned to Groq's old
+  tokens-per-minute limit, not any real capacity) to `min(1500 + 180*len + 150*speakers, 32000)`.
+  Verified via OpenRouter's public models API that `openai/gpt-oss-20b`'s actual context length
+  is 131,072 tokens — the old ceiling was never a real constraint, just a leftover from Groq.
+- **Discovery mid-fix**: this model does *mandatory* internal reasoning before its visible answer
+  (`"reasoning": {"mandatory": true, ...}` in OpenRouter's model metadata). Measured directly on
+  the real 107-message conversation that started this investigation: 5466 of 10745 completion
+  tokens went to invisible reasoning on one run — roughly half the budget — with real run-to-run
+  variance (temperature 0.1 isn't fully deterministic). A first re-test after just raising the
+  ceiling still failed with empty content (`response.choices[0].message.content is None`),
+  confirming reasoning-token consumption alone can exhaust a generous budget on a long
+  conversation. Fixed by adding `reasoning_effort="low"` (a real, documented parameter for this
+  model) to bound that consumption, plus treating empty content as a retryable condition
+  alongside the existing 429/413 handling (same backoff loop) as a safety net for remaining
+  variance.
+- `app/rubric.py`: trimmed the system prompt for conciseness — cut a paragraph of pure
+  meta-commentary (explaining *why* rationale must be category-only, not *what* to do, so the
+  model didn't need it) and tightened a few sentences elsewhere. **Did not touch** the
+  legitimacy/anti-refusal framing paragraph at the top (lines 1-8) — that was specifically added
+  to reduce content refusals earlier this session and cutting it for token savings would risk
+  undoing that work.
+
+**verified live:** the exact 107-message conversation that originally failed with "input too
+large" now returns all 107 segments correctly, flagging `desensitization` at 0.95 progression
+score. Previously this conversation couldn't be processed at all.
+
+**interface impact:** none — same `/analyze` request/response shape, same model. Purely an
+internal reliability fix.
+
+**still open:** `eval/sampler.py`'s `max_messages` cap (currently 40, set earlier this session
+specifically because of the old ceiling problem) was not revisited — the constraint that forced
+it is now substantially relaxed, so it could likely be raised or removed if a fuller eval run is
+still wanted. Not changed here since it wasn't part of what was asked this round.
+
+**next agent should:** if raising/removing `eval/sampler.py`'s `max_messages`, re-run a small
+`--quick` sample first to confirm reasoning_effort="low" doesn't measurably hurt tagging quality
+on real PAN12 conversations before trusting a bigger run's numbers — it was chosen based on one
+long-conversation reliability fix, not a quality comparison against "medium" effort.
+
+---
+
+### [branch: feat/ai-gabriel] — 2026-07-17 (session end, correction)
+
+**correction to the entry immediately above:** `reasoning_effort="low"` was a mistake, caught by
+the user testing locally — not by this session's own verification, which only tested the long
+conversation and never re-checked a normal-length one after the change. Direct A/B test on
+`eval/demo_transcripts/07_four_party_full_roles.json` (30 messages): at `"low"`, every stage
+collapsed to `trust_building` and every participant to `active_participant` — a real analytical
+failure. At `"medium"` (the model's own default), it correctly found `isolation_secrecy` and
+correctly identified the target. This was exactly the risk flagged as "still open" in the
+previous entry ("chosen based on one long-conversation reliability fix, not a quality comparison
+against medium effort") — should have been tested before considering the fix done, not left as
+a warning for later.
+
+**changed:** removed `reasoning_effort="low"` entirely from `app/llm_client.py`. The model now
+uses its own default reasoning effort ("medium") for every call, long or short. Re-verified both
+cases with this reverted: the 30-message four-party transcript now correctly reaches
+`isolation_secrecy` again (`progression_score: 0.725`, B correctly `target_victim`), **and** the
+107-message conversation from the earlier entry still succeeds with all 107 segments
+(`progression_score: 1.0`) — the raised `max_tokens` ceiling plus the empty-content retry safety
+net were enough on their own; the reasoning-effort restriction was never actually necessary for
+that case, it just happened to also "fix" it by making the model do less work overall.
+
+**lesson for next agent:** when a fix targets one specific failure case (here: one long
+conversation), re-test the *common* case too before calling it done, not just the case that
+motivated the fix. A fix that only gets checked against the thing it was built to fix can pass
+its own test while silently breaking everything else.
+
+**interface impact:** none — same shape, same model, just one parameter removed.
