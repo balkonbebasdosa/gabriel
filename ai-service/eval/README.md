@@ -80,6 +80,33 @@ conversation went unflagged because the rubric missed it or because the model re
 it — both outcomes are "the tool didn't warn me." Quoting only `recall_excluding_errors` would
 be a materially rosier number than what the tool actually delivers end-to-end.
 
+## Known limitation: conversation length cap
+
+`sampler.py`'s `max_messages` (default 50) excludes longer conversations from the eval sample
+entirely. Our single-call design (one LLM call scores the whole conversation at once, so the
+model has full holistic context) is bounded by Groq's per-minute token budget for
+`gpt-oss-20b` (8000 tokens) — a real 107-message PAN12 conversation was observed to exceed this
+and get its completion truncated mid-JSON, which looks identical to a refusal until inspected
+closely (same failure signature as the earlier missing-`max_completion_tokens` bug, just
+re-triggered at a higher message count once `participants` added overhead to the token formula).
+Chunking long conversations across multiple calls would remove this limit but is real
+architectural work, not something to improvise under deadline pressure — excluding them from
+the sample is the honest choice: it means this eval's numbers describe performance on
+conversations up to ~50 messages, not the full length distribution of the corpus, and that
+scope should be stated alongside any number quoted from this harness.
+
+## PR-AUC / ROC-AUC: threshold-independent metrics
+
+`precision`/`recall`/`f1` all depend on the one fixed cutoff in `POSITIVE_STAGES` (reaching
+`isolation_secrecy` or `desensitization`). `pr_auc` and `roc_auc` instead use the raw continuous
+`progression_score` against ground truth across every possible cutoff, answering "is the
+underlying score fundamentally sound," independent of whether that one fixed cutoff is the best
+choice. **Quote `pr_auc`, not `roc_auc`, as the headline threshold-independent number** — PR-AUC
+is the more appropriate choice under class imbalance (positives are rare in this corpus), while
+ROC-AUC can look inflated in exactly that situation. Both are computed only over successfully
+scored conversations (same errors caveat as `recall_excluding_errors` above) and will be `null`
+if the sample doesn't contain both classes.
+
 ## Benign false-positive check
 
 `eval/benign_transcripts/` holds hand-written, clearly ordinary conversations — not derived

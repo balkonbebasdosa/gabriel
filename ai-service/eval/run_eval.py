@@ -14,9 +14,11 @@ same script run repeatedly — see eval/README.md for the one-shot eval discipli
 
 import argparse
 import json
+import random
 from pathlib import Path
 
 from dotenv import load_dotenv
+from sklearn.metrics import average_precision_score, roc_auc_score
 
 from app.schemas import Stage
 from app.scorer import analyze
@@ -53,6 +55,12 @@ def run(
     )
 
     if max_per_class is not None:
+        # positives are found in file-scan order (not randomized like the negatives'
+        # reservoir sample) — shuffle with a fixed seed before capping so the sample isn't
+        # systematically biased toward whichever conversations happen to appear early in
+        # the corpus.
+        positives = positives.copy()
+        random.Random(42).shuffle(positives)
         positives = positives[:max_per_class]
         negatives = negatives[:max_per_class]
 
@@ -136,6 +144,19 @@ def run(
         else 0.0
     )
 
+    # Threshold-independent metrics computed from the continuous progression_score, over
+    # only the successfully-scored conversations (same caveat as recall_excluding_errors —
+    # errored conversations have no progression_score to include). PR-AUC is the primary one
+    # to quote: more appropriate than ROC-AUC under class imbalance, which this dataset has
+    # (positives are rare relative to negatives). Needs both classes present to be computable.
+    y_true = [1 if p["actual"] else 0 for p in per_conversation]
+    y_score = [p["progression_score"] for p in per_conversation]
+    pr_auc = None
+    roc_auc = None
+    if len(set(y_true)) == 2:
+        pr_auc = round(average_precision_score(y_true, y_score), 3)
+        roc_auc = round(roc_auc_score(y_true, y_score), 3)
+
     report = {
         "counts": {"tp": tp, "fp": fp, "tn": tn, "fn": fn},
         "precision": round(precision, 3),
@@ -143,6 +164,8 @@ def run(
         "recall_treating_errors_as_misses": round(recall_treating_errors_as_misses, 3),
         "f1_excluding_errors": round(f1, 3),
         "f1_treating_errors_as_misses": round(f1_treating_errors_as_misses, 3),
+        "pr_auc": pr_auc,
+        "roc_auc": roc_auc,
         "n_positives_sampled": len(positives),
         "n_negatives_sampled": len(negatives),
         "n_errors": len(errors),
